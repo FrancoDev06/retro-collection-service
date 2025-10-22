@@ -1,0 +1,24 @@
+{
+	"name": "retro-collection-api",
+	"description": "Retro Collection API",
+	"version": "1.0.0",
+	"main": "dist/server.js",
+	"private": true,
+	"scripts": {
+		"build": "tsc",
+		"build:version": "bash bump.sh",
+		"start": "nodemon"
+	},
+	"dependencies": {
+	},
+	"devDependencies": {
+	},
+	"_moduleAliases": {
+		"@utils": "dist/utils",
+		"@services": "dist/services",
+		"@routes": "dist/routes",
+		"@models": "dist/utils/interfaces/models",
+		"@queries": "dist/utils/queries",
+		"@middlewares": "dist/middlewares"
+	}
+}
