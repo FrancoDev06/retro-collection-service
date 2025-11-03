@@ -1,0 +1,37 @@
+services:
+  # Service PostgreSQL - la base de données
+  postgres:
+    image: postgres:16-alpine  # Version légère de PostgreSQL 16
+    container_name: retro-collection-db
+    restart: unless-stopped
+    environment:
+      # Variables d'environnement pour PostgreSQL
+      # Docker Compose lit automatiquement le fichier .env à la racine
+      # Syntaxe: ${VARIABLE:-valeur_par_defaut} lit VARIABLE depuis .env, sinon utilise la valeur par défaut
+      POSTGRES_USER: ${DATABASE_USER:-retro_user}          # Lit DATABASE_USER depuis .env, sinon "retro_user"
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-retro_password}  # Lit DATABASE_PASSWORD depuis .env, sinon "retro_password"
+      POSTGRES_DB: ${DATABASE_NAME:-retro_collection}     # Lit DATABASE_NAME depuis .env, sinon "retro_collection"
+    ports:
+      # Expose le port 5432 de PostgreSQL vers votre machine
+      # Format: "port_hôte:port_container"
+      - "5432:5432"
+    volumes:
+      # Persiste les données dans un volume Docker
+      # Si vous supprimez le container, les données restent
+      - postgres_data:/var/lib/postgresql/data
+      # Optionnel: pour exécuter des scripts SQL au démarrage
+      # - ./databases/init:/docker-entrypoint-initdb.d
+    networks:
+      - retro-network
+
+# Volumes Docker - pour persister les données
+volumes:
+  postgres_data:
+    # Les données seront stockées dans un volume Docker géré
+    # Vous pouvez les voir avec: docker volume ls
+
+# Réseau Docker - pour que les services puissent communiquer
+networks:
+  retro-network:
+    driver: bridge
+
