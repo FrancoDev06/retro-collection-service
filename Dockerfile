@@ -9,19 +9,18 @@ WORKDIR /app
 # On copie d'abord package.json et package-lock.json pour optimiser le cache Docker
 COPY package*.json ./
 
-# Étape 4: Installer les dépendances
-RUN npm ci --only=production
+# Étape 4: Installer toutes les dépendances (y compris devDependencies pour nodemon)
+# Pour le mode développement, on a besoin de nodemon et ts-node
+RUN npm ci
 
 # Étape 5: Copier le reste des fichiers de l'application
 COPY . .
 
-# Étape 6: Compiler TypeScript
-RUN npm run build
-
-# Étape 7: Exposer le port sur lequel l'application écoute
-# (Vous devrez vérifier dans votre code quel port est utilisé)
+# Étape 6: Exposer le port sur lequel l'application écoute
 EXPOSE 3000
 
-# Étape 8: Commande pour démarrer l'application
+# Étape 7: Commande par défaut (peut être surchargée dans docker-compose)
+# En mode dev, on utilise nodemon qui est déjà configuré dans nodemon.json
+# En mode prod, on peut compiler puis lancer avec node directement
 CMD ["npm", "start"]
 

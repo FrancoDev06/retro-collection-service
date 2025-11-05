@@ -24,6 +24,46 @@ services:
     networks:
       - retro-network
 
+  # Service API Node.js avec nodemon pour le hot-reload
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: retro-collection-api
+    restart: unless-stopped
+    environment:
+      # Variables d'environnement pour l'API
+      # Correspondance avec server.ts qui utilise process.env.DATABASE_*
+      NODE_ENV: ${NODE_ENV:-dev}
+      DATABASE_HOST: ${DATABASE_HOST:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_USER: ${DATABASE_USER:-retro_user}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-retro_password}
+      DATABASE_NAME: ${DATABASE_NAME:-retro_collection}
+      PORT: ${PORT:-9876}
+      VERSION: ${VERSION:-1.0.0}
+      NAME: ${NAME:-Retro Collection API}
+      PRODUCT: ${PRODUCT:-retro}
+      SIDE: ${SIDE:-api}
+      VERSION_SHORT: ${VERSION_SHORT:-1}
+    ports:
+      # Expose le port de l'API vers votre machine
+      - "${PORT:-9876}:9876"
+    volumes:
+      # Mount du code source pour le hot-reload avec nodemon
+      # nodemon va surveiller les changements dans src/ et redémarrer automatiquement
+      - ./src:/app/src
+      - ./nodemon.json:/app/nodemon.json
+      - ./tsconfig.json:/app/tsconfig.json
+      # Ne pas monter node_modules pour éviter les conflits
+      - /app/node_modules
+    depends_on:
+      - postgres
+    networks:
+      - retro-network
+    # Commande pour démarrer avec nodemon (déjà configuré dans package.json)
+    command: npm start
+
 # Volumes Docker - pour persister les données
 volumes:
   postgres_data:
