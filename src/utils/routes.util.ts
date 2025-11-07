@@ -27,9 +27,6 @@ export default class RoutesUtil {
 
 		const add = (path: string, router: Router) => instance.use(`/${product}/${side}/v${version}/${path}`, router);
 
-
-		console.log("🚀 ~ RoutesUtil ~ add ~ add:", add)
-
 		add('', RootRouter);
 		add('games', GamesRouter);
 		add('platforms', PlatformRouter);

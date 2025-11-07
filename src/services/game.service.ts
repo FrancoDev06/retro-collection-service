@@ -35,4 +35,6 @@ export default class GamesService {
 				return Promise.reject({ id: 'GamesService.getGamesByPlatform.getGamesByPlatform', error: err });
 			});
 	}
+
+	
 }

@@ -46,6 +46,8 @@ services:
       PRODUCT: ${PRODUCT:-retro}
       SIDE: ${SIDE:-api}
       VERSION_SHORT: ${VERSION_SHORT:-1}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
     ports:
       # Expose le port de l'API vers votre machine
       - "${PORT:-9876}:9876"
@@ -53,6 +55,8 @@ services:
       # Mount du code source pour le hot-reload avec nodemon
       # nodemon va surveiller les changements dans src/ et redémarrer automatiquement
       - ./src:/app/src
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
       - ./nodemon.json:/app/nodemon.json
       - ./tsconfig.json:/app/tsconfig.json
       # Ne pas monter node_modules pour éviter les conflits

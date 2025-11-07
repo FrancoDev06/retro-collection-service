@@ -22,6 +22,8 @@ app.set("product", process.env.PRODUCT);
 app.set("side", process.env.SIDE);
 app.set("versionShort", process.env.VERSION_SHORT);
 
+app.set("jwtSecret", process.env.JWT_SECRET);
+app.set("jwtRefreshSecret", process.env.JWT_REFRESH_SECRET);
 
 const init = async () => {
 	LogUtil.consinfo(`Mouting ${app.get('name')} code on /${app.get('product')}/${app.get('side')}/v${app.get('versionShort')}`);
