@@ -7,6 +7,7 @@ export default class PasswordService {
 	}
 
 	static async verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
+		console.log('verifyPassword', password, hashedPassword);
 		return await crypto.createHash('sha256').update(password).digest('hex') === hashedPassword;
 	}
 }

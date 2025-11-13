@@ -7,7 +7,6 @@ CREATE TABLE ref_games (
 	ll_background_image TEXT,
 	ll_background_image_additional TEXT,
 	nb_rating INT NOT NULL DEFAULT 0,
-	ll_console_name VARCHAR(255) NOT NULL,
 	ts_released TIMESTAMP NOT NULL,
     ts_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     ts_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
