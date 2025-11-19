@@ -45,7 +45,8 @@ SELECT
     rg.ts_released,
     rp.ll_name,
     rp.ll_manufacturer,
-    rge.ll_name as genre_name
+    rge.ll_name as genre_name,
+	rp.id as platform_id
 FROM
     ref_games AS rg
 	INNER JOIN assoc_games_platforms AS agp ON agp.ll_game_id = rg.id
@@ -54,4 +55,20 @@ FROM
 	INNER JOIN ref_genres AS rge ON rge.id = agg.ll_genre_id
 WHERE
     rg.id = $1
+`;
+
+export const getGamePlatforms = `
+SELECT
+	rp.id,
+	rp.ll_name,
+FROM
+	ref_games AS rg
+INNER JOIN assoc_games_platforms AS agp ON agp.ll_game_id = rg.id
+INNER JOIN ref_platforms AS rp ON agp.ll_platform_id = rp.id
+WHERE rg.id = $1 
+    AND agp.flag_active = TRUE
+	AND rp.flag_active = TRUE
+	AND agp.flag_active = TRUE
+GROUP BY rp.id, rp.ll_name
+ORDER BY rp.ll_name ASC
 `;

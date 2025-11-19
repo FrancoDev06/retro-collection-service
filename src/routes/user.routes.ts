@@ -4,6 +4,7 @@ import ResponsesUtil from "@utils/responses.util";
 import TokenService from "@services/token.service";
 import PasswordService from "@services/password.service";
 import { UserInfoResponse, UserLoginRequest, UserRegisterRequest } from "@utils/interfaces/user.interface";
+import { authMiddleware } from "@middlewares/auth.middleware";
 
 const router: Router = Router();
 
@@ -37,7 +38,7 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction): P
 		return ResponsesUtil.invalidParameters(res, { error: 'EMAIL_NOT_FOUND' });
 	}
 
-	const userInfo : UserInfoResponse = await UserService.getUserInfo(email);
+	const userInfo : UserInfoResponse = await UserService.getUserByEmail(email);
 	if (!userInfo) {
 		return ResponsesUtil.invalidParameters(res, { error: 'USER_INFO_NOT_FOUND' });
 	}
@@ -61,6 +62,44 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction): P
 
 	ResponsesUtil.handleResult(res, { info: 'execko', data: { userInfo, token } });
 });
+
+router.get('/me', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+	try {
+		const token = req.headers.authorization?.split(' ')[1];
+
+		if (!token) {
+			return ResponsesUtil.unauthorizedAction(res, { message: 'Token manquant' });
+		}
+
+		const userId = TokenService.decodeToken(token).userId;
+		if (!userId) {
+			return ResponsesUtil.unauthorizedAction(res, { message: 'Token invalide' });
+		}
+
+		const result: string = await UserService.getUserById(userId);
+		if (!result) {
+			return ResponsesUtil.notFound(res, { error: 'USER_INFO_NOT_FOUND' });
+		}
+		return ResponsesUtil.handleResult(res, { info: 'execko', data: { result } });
+	} catch (error) {
+		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_USER_INFO_FAILED', error: error });
+	}
+});
+
+router.get('/:id', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+	try {
+		const { id } = req.params;
+		const result: string = await UserService.getUserByEmail(id);
+		if (!result) {
+			return ResponsesUtil.notFound(res, { error: 'USER_INFO_NOT_FOUND' });
+		}
+		return ResponsesUtil.handleResult(res, { info: 'execko', data: { result } });
+	} catch (error) {
+		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_USER_INFO_FAILED', error: error });
+	}
+});
+
+
 
 /***************************************************************
 * NOT ALLOWED METHODS HANDLING

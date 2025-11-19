@@ -161,13 +161,14 @@ CREATE TABLE assoc_users_games_collections (
     nb_price_paid NUMERIC(10,2) CHECK (nb_price_paid >= 0),
     ts_acquired_at TIMESTAMP,
     -- Flags pour indiquer la présence des éléments
+    flag_has_game BOOLEAN DEFAULT FALSE,
     flag_has_box BOOLEAN DEFAULT FALSE,
-    flag_has_manual BOOLEAN DEFAULT FALSE,
+    flag_has_notice BOOLEAN DEFAULT FALSE,
     flag_has_inserts BOOLEAN DEFAULT FALSE,
     -- États de condition pour chaque élément (référence vers ref_condition_states)
     ll_cart_condition_id UUID,
     ll_box_condition_id UUID,
-    ll_manual_condition_id UUID,
+    ll_notice_condition_id UUID,
     ll_inserts_condition_id UUID,
     ts_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     ts_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -175,14 +176,34 @@ CREATE TABLE assoc_users_games_collections (
     FOREIGN KEY (ll_user_id) REFERENCES ref_users(id) ON DELETE CASCADE,
     FOREIGN KEY (ll_game_id) REFERENCES ref_games(id) ON DELETE CASCADE,
     FOREIGN KEY (ll_platform_id) REFERENCES ref_platforms(id) ON DELETE CASCADE,
+    FOREIGN KEY (ll_stateGame) REFERENCES ref_condition_states(id),
     FOREIGN KEY (ll_cart_condition_id) REFERENCES ref_condition_states(id),
     FOREIGN KEY (ll_box_condition_id) REFERENCES ref_condition_states(id),
-    FOREIGN KEY (ll_manual_condition_id) REFERENCES ref_condition_states(id),
+    FOREIGN KEY (ll_notice_condition_id) REFERENCES ref_condition_states(id),
     FOREIGN KEY (ll_inserts_condition_id) REFERENCES ref_condition_states(id),
     CONSTRAINT check_collection_status CHECK (
         ll_status IN ('owned', 'loaned', 'for_sale', 'digital', 'preordered')
     ),
     CONSTRAINT unique_user_collection UNIQUE (ll_user_id, ll_game_id, ll_platform_id)
+);
+
+CREATE TABLE assoc_users_platforms (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    ll_user_id UUID NOT NULL,
+    ll_platform_id UUID NOT NULL,
+    nb_units INTEGER NOT NULL DEFAULT 1 CHECK (nb_units > 0),
+    ll_condition_id UUID,
+    ll_purchase_source VARCHAR(120),
+    nb_price_paid NUMERIC(10,2) CHECK (nb_price_paid >= 0),
+    ts_acquired_at TIMESTAMP,
+    ll_notes TEXT,
+    ts_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ts_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    flag_active BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (ll_user_id) REFERENCES ref_users(id) ON DELETE CASCADE,
+    FOREIGN KEY (ll_platform_id) REFERENCES ref_platforms(id) ON DELETE CASCADE,
+    FOREIGN KEY (ll_condition_id) REFERENCES ref_condition_states(id),
+    CONSTRAINT unique_user_platform UNIQUE (ll_user_id, ll_platform_id, ts_acquired_at, ll_condition_id)
 );
 
 CREATE TABLE assoc_users_games_wishlists (
@@ -279,6 +300,11 @@ CREATE TRIGGER trg_assoc_users_games_wishlists_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER trg_assoc_users_platforms_updated_at
+    BEFORE UPDATE ON assoc_users_platforms
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
 -- ============================================
 -- INDEX
 -- ============================================
@@ -324,13 +350,18 @@ CREATE INDEX idx_assoc_users_games_collections_platform ON assoc_users_games_col
 CREATE INDEX idx_assoc_users_games_collections_status ON assoc_users_games_collections(ll_status);
 CREATE INDEX idx_assoc_users_games_collections_cart_condition ON assoc_users_games_collections(ll_cart_condition_id);
 CREATE INDEX idx_assoc_users_games_collections_box_condition ON assoc_users_games_collections(ll_box_condition_id);
-CREATE INDEX idx_assoc_users_games_collections_manual_condition ON assoc_users_games_collections(ll_manual_condition_id);
+CREATE INDEX idx_assoc_users_games_collections_notice_condition ON assoc_users_games_collections(ll_notice_condition_id);
 CREATE INDEX idx_assoc_users_games_collections_inserts_condition ON assoc_users_games_collections(ll_inserts_condition_id);
 
 -- Index pour assoc_users_games_wishlists
 CREATE INDEX idx_assoc_users_games_wishlists_user ON assoc_users_games_wishlists(ll_user_id);
 CREATE INDEX idx_assoc_users_games_wishlists_platform ON assoc_users_games_wishlists(ll_platform_id);
 CREATE INDEX idx_assoc_users_games_wishlists_priority ON assoc_users_games_wishlists(ll_priority);
+
+-- Index pour assoc_users_platforms
+CREATE INDEX idx_assoc_users_platforms_user ON assoc_users_platforms(ll_user_id);
+CREATE INDEX idx_assoc_users_platforms_platform ON assoc_users_platforms(ll_platform_id);
+CREATE INDEX idx_assoc_users_platforms_condition ON assoc_users_platforms(ll_condition_id);
 
 -- Index pour ref_market_prices
 CREATE INDEX idx_ref_market_prices_game_platform ON ref_market_prices(ll_game_id, ll_platform_id);

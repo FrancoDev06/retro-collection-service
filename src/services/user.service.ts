@@ -1,6 +1,6 @@
 import DatabaseUtil from "@utils/database";
 import PasswordService from "./password.service";
-import { checkUserExists, checkUserToken, getUserInfo, loginUser, registerUser, registerUserToken, updateUserToken } from "@utils/queries/user.queries";
+import { checkUserExists, checkUserToken, getUserByEmail, loginUser, registerUser, registerUserToken, updateUserToken ,getUserById} from "@utils/queries/user.queries";
 
 export default class UserService {
 
@@ -18,13 +18,6 @@ export default class UserService {
 			.then((res) => res.rows[0].exists)
 			.catch((err) => Promise.reject({ id: 'UserService.checkUserByEmail.checkUserByEmail', error: err }));
 
-		return result;
-	}
-
-	static async getUserInfo(email: string): Promise<any> {
-		const result = await DatabaseUtil.query(DatabaseUtil.pool, getUserInfo, [email])
-			.then((res) => res.rows[0])
-			.catch((err) => Promise.reject({ id: 'UserService.getUserInfo.getUserInfo', error: err }));
 		return result;
 	}
 
@@ -59,6 +52,20 @@ export default class UserService {
 			.then((res) => res.rowCount)
 			.catch((err) => Promise.reject({ id: 'UserService.updateUserToken.updateUserToken', error: err }));
 
+		return result;
+	}
+
+	static async getUserByEmail(id: string): Promise<any> {
+		const result = await DatabaseUtil.query(DatabaseUtil.pool, getUserByEmail, [id])
+			.then((res) => res.rows[0])
+			.catch((err) => Promise.reject({ id: 'UserService.getUserByEmail.getUserByEmail', error: err }));
+		return result;
+	}
+
+	static async getUserById(id: string): Promise<any> {
+		const result = await DatabaseUtil.query(DatabaseUtil.pool, getUserById, [id])
+			.then((res) => res.rows[0])
+			.catch((err) => Promise.reject({ id: 'UserService.getUserById.getUserById', error: err }));
 		return result;
 	}
 }

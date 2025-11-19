@@ -42,7 +42,7 @@ SELECT
     ) AS exists;
 `;
 
-export const getUserInfo = `
+export const getUserByEmail = `
 SELECT
     id,
     ll_username,
@@ -77,4 +77,17 @@ WHERE
     ll_user_id = $1
     AND flag_active = TRUE
 RETURNING id;
+`;
+
+export const getUserById = `
+SELECT
+    id,
+    ll_username,
+    ll_email,
+    ll_password_hash
+FROM
+    ref_users
+WHERE
+    id = $1
+    AND flag_active = TRUE;
 `;

@@ -3,7 +3,7 @@ import { Router } from "express";
 import GameService from "@services/games.service";
 import { Request, Response, NextFunction } from "express";
 import { authMiddleware } from "@middlewares/auth.middleware";
-import { Game } from "@utils/interfaces/games.interface";
+import { Game, Platform } from "@utils/interfaces/games.interface";
 
 const router: Router = Router();
 
@@ -22,6 +22,7 @@ router.post('/all', authMiddleware, async (req: Request, res: Response, next: Ne
 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_GAMES_FAILED', error: error });
 	}
 });
+
 
 router.get('/count', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
@@ -45,6 +46,19 @@ router.get('/:id', authMiddleware, async (req: Request, res: Response, next: Nex
 		return ResponsesUtil.handleResult(res, { info: 'execko', data: { game } });
 	} catch (error) {
 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_GAME_INFO_FAILED', error: error });
+	}
+});
+
+router.get('/platforms/:id', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+	try {
+		const { id } = req.params;
+		const platforms: Platform[] = await GameService.getGamePlatforms(id);
+		if (!platforms) {
+			return ResponsesUtil.notFound(res, { error: 'GAME_PLATFORMS_NOT_FOUND' });
+		}
+		return ResponsesUtil.handleResult(res, { info: 'execko', data: { platforms } });
+	} catch (error) {
+		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_GAME_PLATFORMS_FAILED', error: error });
 	}
 });
 
