@@ -1,24 +1,26 @@
-export const getAllPlatforms = `
-SELECT * FROM ref_platforms WHERE flag_active = TRUE
+export const getPlatforms = `
+SELECT
+    id,
+    ll_name as name
+FROM
+    ref_platforms AS rp
+WHERE
+    rp.flag_active = TRUE
+ORDER BY
+    rp.ll_name ASC;
 `;
 
 export const getPlatform = `
-SELECT * FROM ref_platforms WHERE id = $1 AND flag_active = TRUE
-`;
-
-export const getPlatformGames = `
 SELECT
-	rg.id,
-	rg.ll_slug,
-	rg.ll_title,
-	rg.ll_cover_image,
-	rg.ll_game_url,
-	rg.ll_product_id
-FROM ref_games AS rg
-	INNER JOIN assoc_games_platforms AS agp ON agp.ll_game_id = rg.id
-	INNER JOIN ref_platforms AS rp ON rp.id = agp.ll_platform_id
-WHERE rg.flag_active = TRUE
-	AND rp.id = $1
-	AND rp.flag_active = TRUE
-	AND agp.flag_active = TRUE
+    id,
+    ll_slug as slug,
+    ll_name as name,
+    ll_manufacturer as manufacturer,
+    ll_url as url,
+    ll_details as details
+FROM
+    ref_platforms AS rp
+WHERE
+    rp.id = $ 1
+    AND rp.flag_active = TRUE
 `;

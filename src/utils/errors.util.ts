@@ -6,7 +6,7 @@ export default class ErrorsUtil {
 
 	static _401(additional: any): RequestError {
 		return {
-			info: 'execko',
+			info: 'execok',
 			error: 'ERROR_UNAUTHORIZED_ACTION',
 			additional: JSON.parse(JSON.stringify(additional))
 		};
@@ -15,7 +15,7 @@ export default class ErrorsUtil {
 
 	static _404(additional: any): RequestError {
 		return {
-			info: 'execko',
+			info: 'execok',
 			error: 'ERROR_NO_DATA_FOUND',
 			additional: JSON.parse(JSON.stringify(additional))
 		};
@@ -24,7 +24,7 @@ export default class ErrorsUtil {
 
 	static _405(additional: any): RequestError {
 		return {
-			info: 'execko',
+			info: 'execok',
 			error: 'ERROR_METHOD_NOT_ALLOWED',
 			additional: JSON.parse(JSON.stringify(additional))
 		};
@@ -33,7 +33,7 @@ export default class ErrorsUtil {
 
 	static _412(additional: any): RequestError {
 		return {
-			info: 'execko',
+			info: 'execok',
 			error: 'ERROR_INVALID_PARAMETERS',
 			additional: JSON.parse(JSON.stringify(additional))
 		};
@@ -42,7 +42,7 @@ export default class ErrorsUtil {
 
 	static _422(additional: any): RequestError {
 		return {
-			info: 'execko',
+			info: 'execok',
 			error: 'ERROR_UNPROCESSABLE_ENTITY',
 			additional: JSON.parse(JSON.stringify(additional))
 		};
@@ -51,7 +51,7 @@ export default class ErrorsUtil {
 
 	static _429(additional: any): RequestError {
 		return {
-			info: 'execko',
+			info: 'execok',
 			error: 'ERROR_RATE_LIMITED',
 			additional: JSON.parse(JSON.stringify(additional))
 		};
@@ -60,7 +60,7 @@ export default class ErrorsUtil {
 
 	static _500(additional: any): RequestError {
 		return {
-			info: 'execko',
+			info: 'execok',
 			error: 'ERROR_SOMETHING_WENT_WRONG',
 			additional: JSON.parse(JSON.stringify(additional))
 		};
@@ -69,7 +69,7 @@ export default class ErrorsUtil {
 
 	static _503(additional: any): RequestError {
 		return {
-			info: 'execko',
+			info: 'execok',
 			error: 'ERROR_SERVICE_UNAVAILABLE',
 			additional: JSON.parse(JSON.stringify(additional))
 		};

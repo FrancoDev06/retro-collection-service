@@ -176,15 +176,13 @@ CREATE TABLE assoc_users_games_collections (
     FOREIGN KEY (ll_user_id) REFERENCES ref_users(id) ON DELETE CASCADE,
     FOREIGN KEY (ll_game_id) REFERENCES ref_games(id) ON DELETE CASCADE,
     FOREIGN KEY (ll_platform_id) REFERENCES ref_platforms(id) ON DELETE CASCADE,
-    FOREIGN KEY (ll_stateGame) REFERENCES ref_condition_states(id),
     FOREIGN KEY (ll_cart_condition_id) REFERENCES ref_condition_states(id),
     FOREIGN KEY (ll_box_condition_id) REFERENCES ref_condition_states(id),
     FOREIGN KEY (ll_notice_condition_id) REFERENCES ref_condition_states(id),
     FOREIGN KEY (ll_inserts_condition_id) REFERENCES ref_condition_states(id),
     CONSTRAINT check_collection_status CHECK (
         ll_status IN ('owned', 'loaned', 'for_sale', 'digital', 'preordered')
-    ),
-    CONSTRAINT unique_user_collection UNIQUE (ll_user_id, ll_game_id, ll_platform_id)
+    )
 );
 
 CREATE TABLE assoc_users_platforms (

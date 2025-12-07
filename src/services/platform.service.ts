@@ -1,28 +1,21 @@
 import DatabaseUtil from "@utils/database";
-import { getAllPlatforms, getPlatformGames } from "@utils/queries/platform.queries";
-import { getPlatform } from "@utils/queries/platform.queries";
+import { Platform, Platforms } from "@utils/interfaces/platform.interface";
+import { getPlatform, getPlatforms } from "@utils/queries/platform.queries";
 
 export default class PlatformService {
 
-	static async getAllPlatforms(): Promise<any[]> {
-		const result = await DatabaseUtil.query(DatabaseUtil.pool, getAllPlatforms, [])
+	static async getPlatforms(): Promise<Platforms[]> {
+		const result = await DatabaseUtil.query(DatabaseUtil.pool, getPlatforms, [])
 			.then((res) => res.rows)
-			.catch((err) => Promise.reject({ id: 'PlatformService.getAllPlatforms.getAllPlatforms', error: err }));
-		return result;
+			.catch((err) => Promise.reject({ id: 'PlatformService.getPlatforms.getPlatforms', error: err }));
+		return result as Platforms[];
 	}
 
-    static async getPlatform(id: string): Promise<any> {
+    static async getPlatform(id: string): Promise<Platform> {
         const result = await DatabaseUtil.query(DatabaseUtil.pool, getPlatform, [id])
-            .then((res) => res.rows)
+            .then((res) => res.rows[0])
             .catch((err) => Promise.reject({ id: 'PlatformService.getPlatform.getPlatform', error: err }));
-        return result;
-    }
-
-    static async getPlatformGames(id: string): Promise<any> {
-        const result = await DatabaseUtil.query(DatabaseUtil.pool, getPlatformGames, [id])
-            .then((res) => res.rows)
-            .catch((err) => Promise.reject({ id: 'PlatformService.getPlatformGames.getPlatformGames', error: err }));
-        return result;
+        return result as Platform;
     }
 
 }

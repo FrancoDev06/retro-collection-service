@@ -37,3 +37,14 @@ export interface AddGameCollection {
 	insertsConditionId: string;
 	hasGame: boolean;
 }
+
+export interface AddPlatformCollection {
+	userId: string;
+	platformId: string;
+	units: number;
+	conditionId: string;
+	purchaseSource: string;
+	pricePaid: number;
+	datePurchase: string;
+	notes: string;
+}

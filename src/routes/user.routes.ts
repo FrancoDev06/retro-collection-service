@@ -24,7 +24,7 @@ router.post('/register', async (req: Request, res: Response, next: NextFunction)
 		return ResponsesUtil.somethingWentWrong(res, { error: 'REGISTER_USER_FAILED' });
 	}
 
-	ResponsesUtil.handleResult(res, { info: 'execko', data: { result } });
+	ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
 });
 
 router.post('/login', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -60,10 +60,10 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction): P
 
 	await UserService.registerUserToken(userInfo.id, token);
 
-	ResponsesUtil.handleResult(res, { info: 'execko', data: { userInfo, token } });
+	ResponsesUtil.handleResult(res, { info: 'execok', data: { userInfo, token } });
 });
 
-router.get('/me', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+router.get('/me',  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 		const token = req.headers.authorization?.split(' ')[1];
 
@@ -80,20 +80,20 @@ router.get('/me', authMiddleware, async (req: Request, res: Response, next: Next
 		if (!result) {
 			return ResponsesUtil.notFound(res, { error: 'USER_INFO_NOT_FOUND' });
 		}
-		return ResponsesUtil.handleResult(res, { info: 'execko', data: { result } });
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
 	} catch (error) {
 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_USER_INFO_FAILED', error: error });
 	}
 });
 
-router.get('/:id', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+router.get('/:id',  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 		const { id } = req.params;
 		const result: string = await UserService.getUserByEmail(id);
 		if (!result) {
 			return ResponsesUtil.notFound(res, { error: 'USER_INFO_NOT_FOUND' });
 		}
-		return ResponsesUtil.handleResult(res, { info: 'execko', data: { result } });
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
 	} catch (error) {
 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_USER_INFO_FAILED', error: error });
 	}

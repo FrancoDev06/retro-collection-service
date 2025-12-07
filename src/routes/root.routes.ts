@@ -9,7 +9,7 @@ const router: Router = Router();
 router.get('/', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	return ResponsesUtil.handleResult(res, {
 		info: `execok`,
-		additional: `🌩️ « Krypton-safe by design. » - Lifeaz Cloud Team - https://lifeaz.co`
+		additional: `🌩️ « RetroCollection by RoyDev »`
 	});
 });
 
