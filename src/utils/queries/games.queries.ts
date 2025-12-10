@@ -157,3 +157,80 @@ LIMIT $2 OFFSET $3;
 export const getGamesSearchCount = `
 SELECT COUNT(*) AS count FROM ref_games WHERE ll_title ILIKE '%' || $1 || '%' AND flag_active = TRUE;
 `;
+
+export const getGamePrices = `
+SELECT
+	rmp.id,
+	rmp.ll_game_id as game_id,
+	rmp.ll_platform_id as platform_id,
+	rmp.ll_price_type as price_type,
+	rmp.nb_price_retail as price_retail,
+	rmp.nb_price_change as price_change,
+	rmp.nb_price_change_percent as price_change_percent,
+	rmp.nb_print_run as print_run,
+	rmp.ts_collected_at as collected_at,
+	rmp.ll_source as source
+FROM
+	ref_market_prices as rmp
+WHERE
+	rmp.ll_game_id = $1
+	AND rmp.ll_platform_id = $2
+	AND rmp.flag_active = TRUE;
+`;
+
+export const getGamesByPlatform = `
+SELECT
+	rg.id,
+	rg.ll_title as title,
+	rp.id as platform_id,
+	rp.ll_name as platform_name
+FROM
+	ref_games AS rg
+INNER JOIN assoc_games_platforms AS agp ON agp.ll_game_id = rg.id	
+INNER JOIN ref_platforms AS rp ON agp.ll_platform_id = rp.id
+WHERE rp.id = $1
+	AND rg.flag_active = TRUE
+	AND agp.flag_active = TRUE
+	AND rp.flag_active = TRUE
+GROUP BY rg.id, rg.ll_title, rp.id, rp.ll_name
+ORDER BY rg.ll_title ASC;
+`;
+
+export const getConditionsGames = `
+SELECT
+    rcs.id,
+    rcs.ll_code as code,
+    rcs.ll_label as label,
+    rcs.ll_element_type as element_type,
+    rcs.ll_description as description,
+    rcs.nb_rating as rating
+FROM
+    ref_condition_states as rcs
+WHERE rcs.ll_element_type = 'cart' AND rcs.flag_active = TRUE;
+`;
+
+export const getConditionsBoxed = `
+SELECT
+    rcs.id,
+    rcs.ll_code as code,
+    rcs.ll_label as label,
+    rcs.ll_element_type as element_type,
+    rcs.ll_description as description,
+    rcs.nb_rating as rating
+FROM 
+	ref_condition_states as rcs 
+WHERE rcs.ll_element_type = 'box' AND rcs.flag_active = TRUE
+`;
+
+export const getConditionsManual = `
+SELECT
+    rcs.id,
+    rcs.ll_code as code,
+    rcs.ll_label as label,
+    rcs.ll_element_type as element_type,
+    rcs.ll_description as description,
+    rcs.nb_rating as rating
+FROM 
+	ref_condition_states as rcs 
+WHERE rcs.ll_element_type = 'manual' AND rcs.flag_active = TRUE
+`;

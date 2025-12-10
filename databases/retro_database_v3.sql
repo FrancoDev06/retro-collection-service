@@ -37,7 +37,7 @@ CREATE TABLE ref_condition_states (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     ll_code VARCHAR(20) NOT NULL,
     ll_label VARCHAR(60) NOT NULL,
-    ll_element_type VARCHAR(20) NOT NULL CHECK (ll_element_type IN ('cart', 'manual', 'box', 'inserts')),
+    ll_element_type VARCHAR(20) NOT NULL CHECK (ll_element_type IN ('cart', 'manual', 'box')),
     ll_description TEXT NOT NULL,
     nb_rating INTEGER CHECK (nb_rating >= 0 AND nb_rating <= 5),
     ts_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -164,12 +164,10 @@ CREATE TABLE assoc_users_games_collections (
     flag_has_game BOOLEAN DEFAULT FALSE,
     flag_has_box BOOLEAN DEFAULT FALSE,
     flag_has_notice BOOLEAN DEFAULT FALSE,
-    flag_has_inserts BOOLEAN DEFAULT FALSE,
     -- États de condition pour chaque élément (référence vers ref_condition_states)
     ll_cart_condition_id UUID,
     ll_box_condition_id UUID,
     ll_notice_condition_id UUID,
-    ll_inserts_condition_id UUID,
     ts_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     ts_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     flag_active BOOLEAN DEFAULT TRUE,
@@ -179,7 +177,6 @@ CREATE TABLE assoc_users_games_collections (
     FOREIGN KEY (ll_cart_condition_id) REFERENCES ref_condition_states(id),
     FOREIGN KEY (ll_box_condition_id) REFERENCES ref_condition_states(id),
     FOREIGN KEY (ll_notice_condition_id) REFERENCES ref_condition_states(id),
-    FOREIGN KEY (ll_inserts_condition_id) REFERENCES ref_condition_states(id),
     CONSTRAINT check_collection_status CHECK (
         ll_status IN ('owned', 'loaned', 'for_sale', 'digital', 'preordered')
     )
@@ -349,7 +346,6 @@ CREATE INDEX idx_assoc_users_games_collections_status ON assoc_users_games_colle
 CREATE INDEX idx_assoc_users_games_collections_cart_condition ON assoc_users_games_collections(ll_cart_condition_id);
 CREATE INDEX idx_assoc_users_games_collections_box_condition ON assoc_users_games_collections(ll_box_condition_id);
 CREATE INDEX idx_assoc_users_games_collections_notice_condition ON assoc_users_games_collections(ll_notice_condition_id);
-CREATE INDEX idx_assoc_users_games_collections_inserts_condition ON assoc_users_games_collections(ll_inserts_condition_id);
 
 -- Index pour assoc_users_games_wishlists
 CREATE INDEX idx_assoc_users_games_wishlists_user ON assoc_users_games_wishlists(ll_user_id);
@@ -413,16 +409,4 @@ VALUES
     ('missing', 'Missing', 'manual', 'Notice manquante', 0, TRUE)
 ON CONFLICT (ll_code, ll_element_type) DO NOTHING;
 
--- États pour les inserts/jaquettes
-INSERT INTO ref_condition_states (ll_code, ll_label, ll_element_type, ll_description, nb_rating, flag_active)
-VALUES
-    ('mint', 'Mint', 'inserts', 'Inserts neufs, aucun dommage', 5, TRUE),
-    ('near_mint', 'Near Mint', 'inserts', 'Quasi neufs, très légers dommages', 4, TRUE),
-    ('excellent', 'Excellent', 'inserts', 'Excellent état, dommages minimes', 4, TRUE),
-    ('very_good', 'Very Good', 'inserts', 'Très bon état, quelques dommages', 3, TRUE),
-    ('good', 'Good', 'inserts', 'Bon état, dommages visibles', 3, TRUE),
-    ('acceptable', 'Acceptable', 'inserts', 'État acceptable, dommages importants', 2, TRUE),
-    ('poor', 'Poor', 'inserts', 'Mauvais état, dommages sévères', 1, TRUE),
-    ('missing', 'Missing', 'inserts', 'Inserts manquants', 0, TRUE)
-ON CONFLICT (ll_code, ll_element_type) DO NOTHING;
 

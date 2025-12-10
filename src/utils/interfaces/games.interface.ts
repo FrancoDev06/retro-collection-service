@@ -25,3 +25,12 @@ export interface Game {
 	platform_id: string;
 	platform_name: string;
 }
+
+export interface ConditionsGames {
+	id: string;
+    code: string;
+    label: string;
+    element_type: string;
+    description: string;
+    rating: number;
+}

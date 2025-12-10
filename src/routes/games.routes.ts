@@ -2,7 +2,9 @@ import ResponsesUtil from "@utils/responses.util";
 import { Router } from "express";
 import GameService from "@services/games.service";
 import { Request, Response, NextFunction } from "express";
-import { Game, Games } from "@utils/interfaces/games.interface";
+import { Game, Games, ConditionsGames } from "@utils/interfaces/games.interface";
+import { Prices } from "@utils/interfaces/prices.interface";
+import { authMiddleware } from "@middlewares/auth.middleware";
 
 const router: Router = Router();
 
@@ -16,7 +18,7 @@ const router: Router = Router();
  * @route GET /games
  * @access Private (nécessite authentification)
  */
-router.get('/', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+router.get('/', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 		const games : Games[] = await GameService.getGames();
 		if (!games) {
@@ -38,7 +40,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction): Promise
  * @route POST /games/limited
  * @access Private (nécessite authentification)
  */
-router.post('/limited', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+router.post('/limited', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 		const { limit, offset } = req.body;
 		const gamesLimited : Games[] = await GameService.getGamesLimited(limit, offset);
@@ -61,7 +63,7 @@ router.post('/limited', async (req: Request, res: Response, next: NextFunction):
  * @route GET /games/count
  * @access Private (nécessite authentification)
  */
-router.get('/count',  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+router.get('/count', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 		const count : number = await GameService.getGamesCount();
 		if (count === undefined || count === null) {
@@ -70,6 +72,19 @@ router.get('/count',  async (req: Request, res: Response, next: NextFunction): P
 		return ResponsesUtil.handleResult(res, { info: 'execok', data: { count } });
 	} catch (error) {
 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_GAMES_COUNT_FAILED', error: error });
+	}
+});
+
+router.get('/platform/:id', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+	try {
+		const { id } = req.params;
+		const gamesPlatforms: Games[] = await GameService.getGamesByPlatform (id);
+		if (!gamesPlatforms) {
+			return ResponsesUtil.notFound(res, { error: 'GAMES_BY_PLATFORM_ID_NOT_FOUND' });
+		}
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { gamesPlatforms } });
+	} catch (error) {
+		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_GAMES_PLATFORMS_LIMITED_FAILED', error: error });
 	}
 });
 
@@ -82,7 +97,7 @@ router.get('/count',  async (req: Request, res: Response, next: NextFunction): P
  * @route POST /games/platform/:id/limited
  * @access Private (nécessite authentification)
  */
-router.post('/platform/:id/limited',  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+router.post('/platform/:id/limited', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 		const { id } = req.params;
 		const { limit, offset } = req.body;
@@ -105,7 +120,7 @@ router.post('/platform/:id/limited',  async (req: Request, res: Response, next: 
  * @route GET /games/platform/:id/limited/count
  * @access Private (nécessite authentification)
  */
-router.get('/platform/:id/limited/count',  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+router.get('/platform/:id/limited/count', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 		const { id } = req.params;
 		const count: number = await GameService.getGamesCountByPlatformId(id);
@@ -127,7 +142,7 @@ router.get('/platform/:id/limited/count',  async (req: Request, res: Response, n
  * @route POST /games/search
  * @access Private (nécessite authentification)
  */
-router.post('/search', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+router.post('/search', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 
 		const { limit, offset , searchTerm } = req.body;
@@ -151,7 +166,7 @@ router.post('/search', async (req: Request, res: Response, next: NextFunction): 
  * @route POST /games/search/count
  * @access Private (nécessite authentification)
  */
-router.post('/search/count', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+router.post('/search/count', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 		const { searchTerm } = req.body;
 		const count: number = await GameService.getGamesSearchCount(searchTerm);
@@ -164,6 +179,19 @@ router.post('/search/count', async (req: Request, res: Response, next: NextFunct
 	}
 });
 
+router.post('/prices', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+	try {
+		const { gameId, platformId } = req.body;
+		const prices: Prices[] = await GameService.getGamePrices(gameId, platformId);
+		if (!prices) {
+			return ResponsesUtil.notFound(res, { error: 'PRICES_NOT_FOUND' });
+		}
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { prices } });
+	} catch (error) {
+		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_PRICES_FAILED', error: error });
+	}
+});
+
 /**
  * ROUTE API : Récupère un jeu par son ID
  * 
@@ -173,7 +201,7 @@ router.post('/search/count', async (req: Request, res: Response, next: NextFunct
  * @route GET /games/:id
  * @access Private (nécessite authentification)
  */
-router.get('/:id', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+router.get('/:id', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 		const { id } = req.params;
 		const game : Game = await GameService.getGame(id);
@@ -185,6 +213,76 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction): Prom
 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_GAME_FAILED', error: error });
 	}
 });
+
+/**
+ * ROUTE API : Récupère tous les états de condition disponibles pour les jeux
+ * 
+ * @see GameService.getConditionsGames() - Fonction service appelée
+ * @see getConditionsGames (games.queries.ts) - Requête SQL utilisée
+ * 
+ * @route GET /games/conditions/game
+ * @access Private (nécessite authentification)
+ */
+router.get('/conditions/game', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+	try {
+
+		const conditionsGames: ConditionsGames[] = await GameService.getConditionsGames();
+		if (!conditionsGames) {
+			return ResponsesUtil.notFound(res, { error: 'CONDITIONS_GAMES_NOT_FOUND' });
+		}
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { conditionsGames } });
+	} catch (error) {
+		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_CONDITIONS_GAMES_FAILED', error: error });
+	}
+});
+
+/**
+ * ROUTE API : Récupère tous les états de condition disponibles pour les cartouches de jeux
+ * 
+ * @see GameService.getConditionsGames() - Fonction service appelée
+ * @see getConditionsGames (games.queries.ts) - Requête SQL utilisée
+ * 
+ * @route GET /games/conditions/box
+ * @access Private (nécessite authentification)
+ */
+router.get('/conditions/box', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+	try {
+		const conditionsBox: ConditionsGames[] = await GameService.getConditionsBoxed();
+		if (!conditionsBox) {
+			return ResponsesUtil.notFound(res, { error: 'CONDITIONS_BOX_NOT_FOUND' });
+		}
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { conditionsBox } });
+	} catch (error) {
+		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_CONDITIONS_BOX_FAILED', error: error });
+	}
+});
+
+/**
+ * ROUTE API : Récupère tous les états de condition disponibles pour les notices/manuels de jeux
+ * 
+ * @see GameService.getConditionsGames() - Fonction service appelée
+ * @see getConditionsGames (games.queries.ts) - Requête SQL utilisée
+ * 
+ * @route GET /games/conditions/manual
+ * @access Private (nécessite authentification)
+ */
+
+
+router.get('/conditions/manual', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+	try {
+		const conditionsManual: ConditionsGames[] = await GameService.getConditionsManual();
+		if (!conditionsManual) {
+			return ResponsesUtil.notFound(res, { error: 'CONDITIONS_MANUAL_NOT_FOUND' });
+		}
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { conditionsManual } });
+	} catch (error) {
+		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_CONDITIONS_MANUAL_FAILED', error: error });
+	}
+});
+
+
+
+
 
 // router.get('/:id',  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 // 	try {

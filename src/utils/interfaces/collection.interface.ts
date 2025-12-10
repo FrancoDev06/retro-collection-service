@@ -11,11 +11,9 @@ export interface Collection {
 	ts_acquired_at: Date;
 	flag_has_box: boolean;
 	flag_has_manual: boolean;
-	flag_has_inserts: boolean;
 	ll_cart_condition_id: string;
 	ll_box_condition_id: string;
 	ll_manual_condition_id: string;
-	ll_inserts_condition_id: string;
 }
 
 export interface AddGameCollection {
@@ -30,11 +28,9 @@ export interface AddGameCollection {
 	datePurchase: string;
 	hasBox: boolean;
 	hasNotice: boolean;
-	hasInserts: boolean;
 	cartConditionId: string;
 	boxConditionId: string;
 	noticeConditionId: string;
-	insertsConditionId: string;
 	hasGame: boolean;
 }
 

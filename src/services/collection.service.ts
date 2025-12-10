@@ -1,5 +1,5 @@
 import DatabaseUtil from "@utils/database";
-import { getConditionsBoxed, addGameToCollection, getConditionsCart, getConditionsInserts, getConditionsManual, getGamesCibCount, getGamesCount, getGamesValue, getPlatformList, getPlatformsCount, getGamesCountByPlatformId, getGamesListByPlatformId } from "@utils/queries/collection.queries";
+import { getConditionsBoxed, addGameToCollection, getConditionsCart, getConditionsManual, getGamesCibCount, getGamesCount, getGamesValue, getPlatformList, getPlatformsCount, getGamesCountByPlatformId, getGamesListByPlatformId } from "@utils/queries/collection.queries";
 
 
 export default class CollectionService {
@@ -51,21 +51,6 @@ export default class CollectionService {
 	}
 
 	/**
-	 * FONCTION SERVICE : Récupère tous les états de condition disponibles pour les inserts de jeux
-	 * 
-	 * @see getConditionsInserts (collection.queries.ts) - Requête SQL utilisée
-	 * @see GET /collection/conditions/inserts - Route API qui expose cette fonctionnalité
-	 * 
-	 * @returns Tous les enregistrements actifs de la table ref_condition_states où le type d'élément est 'inserts'
-	 */
-	static async getConditionsInserts(): Promise<any> {
-		const result = await DatabaseUtil.query(DatabaseUtil.pool, getConditionsInserts, [])
-			.then((res) => res.rows)
-			.catch((err) => Promise.reject({ id: 'CollectionService.getConditionsInserts.getConditionsInserts', error: err }));
-		return result;
-	}
-
-	/**
 	 * FONCTION SERVICE : Ajoute un jeu à la collection d'un utilisateur
 	 * 
 	 * @see addGameToCollection (collection.queries.ts) - Requête SQL utilisée
@@ -83,11 +68,9 @@ export default class CollectionService {
 	 * @param hasGame - Indique si l'utilisateur possède le jeu lui-même
 	 * @param hasBox - Indique si l'utilisateur possède la boîte
 	 * @param hasNotice - Indique si l'utilisateur possède la notice
-	 * @param hasInserts - Indique si l'utilisateur possède les inserts
 	 * @param cartConditionId - ID de l'état de condition de la cartouche
 	 * @param boxConditionId - ID de l'état de condition de la boîte
 	 * @param noticeConditionId - ID de l'état de condition de la notice
-	 * @param insertsConditionId - ID de l'état de condition des inserts
 	 * @returns L'ID de l'enregistrement créé
 	 */
 	static async addGameToCollection(
@@ -103,11 +86,9 @@ export default class CollectionService {
 		hasGame: boolean,
 		hasBox: boolean,
 		hasNotice: boolean,
-		hasInserts: boolean,
 		cartConditionId: string,
 		boxConditionId: string,
 		noticeConditionId: string,
-		insertsConditionId: string,
 	): Promise<any> {
 
 		const result = await DatabaseUtil.query(DatabaseUtil.pool, addGameToCollection, [
@@ -123,11 +104,9 @@ export default class CollectionService {
 			hasGame,
 			hasBox,
 			hasNotice,
-			hasInserts,
 			cartConditionId,
 			boxConditionId,
 			noticeConditionId,
-			insertsConditionId,
 		])
 			.then((res) => res.rows[0])
 			.catch((err) => Promise.reject({ id: 'CollectionService.addGameToCollection.addGameToCollection', error: err }));

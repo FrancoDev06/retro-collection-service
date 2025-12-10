@@ -74,28 +74,6 @@ router.get('/conditions/manual',  async (req: Request, res: Response, next: Next
 });
 
 /**
- * ROUTE API : Récupère tous les états de condition disponibles pour les inserts de jeux
- * 
- * @see CollectionService.getConditionsInserts() - Fonction service appelée
- * @see getConditionsInserts (collection.queries.ts) - Requête SQL utilisée
- * 
- * @route GET /collection/conditions/inserts
- * @access Private (nécessite authentification)
- */
-router.get('/conditions/inserts',  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-	try {
-
-		const result = await CollectionService.getConditionsInserts();
-		if (!result) {
-			return ResponsesUtil.notFound(res, { error: 'GAME_STATUS_NOT_FOUND' });
-		}
-		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
-	} catch (error) {
-		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_STATUS_BOXED_FAILED', error: error });
-	}
-});
-
-/**
  * ROUTE API : Ajoute un jeu à la collection d'un utilisateur
  * Vérifie d'abord si le jeu et la plateforme existent déjà dans la collection
  * 
@@ -140,11 +118,9 @@ router.post('/game/new',  async (req: Request, res: Response, next: NextFunction
 			addGameCollection.hasGame,
 			addGameCollection.hasBox,
 			addGameCollection.hasNotice,
-			addGameCollection.hasInserts,
 			addGameCollection.cartConditionId,
 			addGameCollection.boxConditionId,
 			addGameCollection.noticeConditionId,
-			addGameCollection.insertsConditionId,
 		);
 
 		if (!result) {

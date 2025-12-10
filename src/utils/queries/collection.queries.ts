@@ -53,24 +53,6 @@ WHERE
 `;
 
 /**
- * REQUÊTE SQL : Récupère tous les états de condition disponibles pour les inserts (documents supplémentaires) de jeux
- * 
- * @see CollectionService.getConditionsInserts() - Fonction service qui utilise cette requête
- * @see GET /collection/conditions/inserts - Route API qui expose cette fonctionnalité
- * 
- * @returns Tous les enregistrements actifs de la table ref_condition_states où le type d'élément est 'inserts'
- */
-export const getConditionsInserts = `
-SELECT
-    *
-FROM
-    ref_condition_states
-WHERE
-    ll_element_type = 'inserts'
-    AND flag_active = TRUE;
-`;
-
-/**
  * REQUÊTE SQL : Ajoute un jeu à la collection d'un utilisateur
  * 
  * @see CollectionService.addGameToCollection() - Fonction service qui utilise cette requête
@@ -88,11 +70,9 @@ WHERE
  * @param $10 flag_has_game - Indique si l'utilisateur possède le jeu lui-même
  * @param $11 flag_has_box - Indique si l'utilisateur possède la boîte
  * @param $12 flag_has_notice - Indique si l'utilisateur possède la notice
- * @param $13 flag_has_inserts - Indique si l'utilisateur possède les inserts
  * @param $14 ll_cart_condition_id - ID de l'état de condition de la cartouche
  * @param $15 ll_box_condition_id - ID de l'état de condition de la boîte
  * @param $16 ll_notice_condition_id - ID de l'état de condition de la notice
- * @param $17 ll_inserts_condition_id - ID de l'état de condition des inserts
  * @returns L'ID de l'enregistrement créé
  */
 export const addGameToCollection = `
@@ -110,11 +90,9 @@ INSERT INTO
         flag_has_game,
         flag_has_box,
         flag_has_notice,
-        flag_has_inserts,
         ll_cart_condition_id,
         ll_box_condition_id,
         ll_notice_condition_id,
-        ll_inserts_condition_id
     )
 VALUES
     (
@@ -132,9 +110,7 @@ VALUES
         $12,
         $13,
         $14,
-        $15,
-        $16,
-        $17
+        $15
     )
 RETURNING
     id;
@@ -368,11 +344,9 @@ export const getGamesListByPlatformId = `
         augc.ts_acquired_at,
         augc.flag_has_box,
         augc.flag_has_notice,
-        augc.flag_has_inserts,
         augc.ll_cart_condition_id,
         augc.ll_box_condition_id,
         augc.ll_notice_condition_id,
-        augc.ll_inserts_condition_id,
         augc.flag_has_game
     FROM
         assoc_users_games_collections AS augc

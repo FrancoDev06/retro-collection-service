@@ -10,8 +10,8 @@ const router: Router = Router();
 
 
 router.post('/register', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-	const { username, email, password } : UserRegisterRequest = req.body;
-	if (!username || !email || !password) {
+	const { name, email, password } : UserRegisterRequest = req.body;
+	if (!name || !email || !password) {
 		return ResponsesUtil.invalidParameters(res, { error: 'REGISTER_USER_MISSING_PARAMETERS' });
 	}
 	const existsEmail = await UserService.checkUserExists(email);
@@ -19,7 +19,7 @@ router.post('/register', async (req: Request, res: Response, next: NextFunction)
 		return ResponsesUtil.invalidParameters(res, { error: 'EMAIL_ALREADY_EXISTS' });
 	}
 
-	const result = await UserService.registerUser(username, email, password);
+	const result = await UserService.registerUser(name, email, password);
 	if (!result) {
 		return ResponsesUtil.somethingWentWrong(res, { error: 'REGISTER_USER_FAILED' });
 	}
@@ -63,8 +63,9 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction): P
 	ResponsesUtil.handleResult(res, { info: 'execok', data: { userInfo, token } });
 });
 
-router.get('/me',  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+router.get('/me', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
+
 		const token = req.headers.authorization?.split(' ')[1];
 
 		if (!token) {

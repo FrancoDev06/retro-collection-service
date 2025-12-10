@@ -151,12 +151,10 @@ CREATE TABLE assoc_users_games_collections (
     ts_acquired_at TIMESTAMP,
     flag_has_box BOOLEAN DEFAULT FALSE,
     flag_has_manual BOOLEAN DEFAULT FALSE,
-    flag_has_inserts BOOLEAN DEFAULT FALSE,
     -- États de condition pour chaque élément
     ll_cart_condition_id UUID,
     ll_box_condition_id UUID,
     ll_manual_condition_id UUID,
-    ll_inserts_condition_id UUID,
     ts_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     ts_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     flag_active BOOLEAN DEFAULT TRUE,
@@ -166,7 +164,6 @@ CREATE TABLE assoc_users_games_collections (
     FOREIGN KEY (ll_cart_condition_id) REFERENCES ref_condition_states(id),
     FOREIGN KEY (ll_box_condition_id) REFERENCES ref_condition_states(id),
     FOREIGN KEY (ll_manual_condition_id) REFERENCES ref_condition_states(id),
-    FOREIGN KEY (ll_inserts_condition_id) REFERENCES ref_condition_states(id),
     CONSTRAINT check_collection_status CHECK (
         ll_status IN ('owned', 'loaned', 'for_sale', 'digital', 'preordered')
     ),
