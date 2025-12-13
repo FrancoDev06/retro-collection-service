@@ -196,7 +196,7 @@ GROUP BY rg.id, rg.ll_title, rp.id, rp.ll_name
 ORDER BY rg.ll_title ASC;
 `;
 
-export const getConditionsGames = `
+export const getCartConditions = `
 SELECT
     rcs.id,
     rcs.ll_code as code,
@@ -209,7 +209,7 @@ FROM
 WHERE rcs.ll_element_type = 'cart' AND rcs.flag_active = TRUE;
 `;
 
-export const getConditionsBoxed = `
+export const getBoxConditions = `
 SELECT
     rcs.id,
     rcs.ll_code as code,
@@ -222,7 +222,7 @@ FROM
 WHERE rcs.ll_element_type = 'box' AND rcs.flag_active = TRUE
 `;
 
-export const getConditionsManual = `
+export const getNoticeConditions = `
 SELECT
     rcs.id,
     rcs.ll_code as code,

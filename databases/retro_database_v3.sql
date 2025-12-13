@@ -154,14 +154,11 @@ CREATE TABLE assoc_users_games_collections (
     ll_user_id UUID NOT NULL,
     ll_game_id UUID NOT NULL,
     ll_platform_id UUID NOT NULL,
-    ll_status VARCHAR(30) NOT NULL DEFAULT 'owned',
-    ll_edition VARCHAR(120),
-    ll_format VARCHAR(60),
     ll_notes TEXT,
     nb_price_paid NUMERIC(10,2) CHECK (nb_price_paid >= 0),
     ts_acquired_at TIMESTAMP,
     -- Flags pour indiquer la présence des éléments
-    flag_has_game BOOLEAN DEFAULT FALSE,
+    flag_has_cart BOOLEAN DEFAULT FALSE,
     flag_has_box BOOLEAN DEFAULT FALSE,
     flag_has_notice BOOLEAN DEFAULT FALSE,
     -- États de condition pour chaque élément (référence vers ref_condition_states)
@@ -177,9 +174,6 @@ CREATE TABLE assoc_users_games_collections (
     FOREIGN KEY (ll_cart_condition_id) REFERENCES ref_condition_states(id),
     FOREIGN KEY (ll_box_condition_id) REFERENCES ref_condition_states(id),
     FOREIGN KEY (ll_notice_condition_id) REFERENCES ref_condition_states(id),
-    CONSTRAINT check_collection_status CHECK (
-        ll_status IN ('owned', 'loaned', 'for_sale', 'digital', 'preordered')
-    )
 );
 
 CREATE TABLE assoc_users_platforms (
@@ -342,7 +336,6 @@ CREATE INDEX idx_ref_tokens_active ON ref_tokens(flag_active);
 -- Index pour assoc_users_games_collections
 CREATE INDEX idx_assoc_users_games_collections_user ON assoc_users_games_collections(ll_user_id);
 CREATE INDEX idx_assoc_users_games_collections_platform ON assoc_users_games_collections(ll_platform_id);
-CREATE INDEX idx_assoc_users_games_collections_status ON assoc_users_games_collections(ll_status);
 CREATE INDEX idx_assoc_users_games_collections_cart_condition ON assoc_users_games_collections(ll_cart_condition_id);
 CREATE INDEX idx_assoc_users_games_collections_box_condition ON assoc_users_games_collections(ll_box_condition_id);
 CREATE INDEX idx_assoc_users_games_collections_notice_condition ON assoc_users_games_collections(ll_notice_condition_id);

@@ -82,8 +82,8 @@ RETURNING id;
 export const getUserById = `
 SELECT
     id,
-    ll_username,
-    ll_email,
+    ll_username as name,
+    ll_email as email,
     ll_password_hash
 FROM
     ref_users

@@ -1,8 +1,8 @@
 import DatabaseUtil from "@utils/database";
-import { ConditionsGames, Game, Games } from "@utils/interfaces/games.interface";
+import { Conditions, Game, Games } from "@utils/interfaces/games.interface";
 import { getGames, getGamesLimited, getGame, getGamesCount, getGamesLimitedByPlatformId, getGamesCountByPlatformId, getGamesSearch, getGamesSearchCount, getGamePrices, getGamesByPlatform } from "@utils/queries/games.queries";
 import { Prices } from "@utils/interfaces/prices.interface";
-import { getConditionsGames, getConditionsBoxed, getConditionsManual } from "@utils/queries/games.queries";
+import { getCartConditions, getBoxConditions, getNoticeConditions } from "@utils/queries/games.queries";
 
 export default class GameService {
 
@@ -76,25 +76,25 @@ export default class GameService {
 		return result as Games[];
 	}
 
-	static async getConditionsGames(): Promise<ConditionsGames[]> {
-		const result = await DatabaseUtil.query(DatabaseUtil.pool, getConditionsGames, [])
+	static async getCartConditions(): Promise<Conditions[]> {
+		const result = await DatabaseUtil.query(DatabaseUtil.pool, getCartConditions, [])
 			.then((res) => res.rows)
-			.catch((err) => Promise.reject({ id: 'GameService.getConditionsGames.getConditionsGames', error: err }));
-		return result as ConditionsGames[];
+			.catch((err) => Promise.reject({ id: 'GameService.getCartConditions.getCartConditions', error: err }));
+		return result as Conditions[];
 	}
 
-	static async getConditionsBoxed(): Promise<ConditionsGames[]> {
-		const result = await DatabaseUtil.query(DatabaseUtil.pool, getConditionsBoxed, [])
+	static async getBoxConditions(): Promise<Conditions[]> {
+		const result = await DatabaseUtil.query(DatabaseUtil.pool, getBoxConditions, [])
 			.then((res) => res.rows)
-			.catch((err) => Promise.reject({ id: 'GameService.getConditionsBoxed.getConditionsBoxed', error: err }));
-		return result as ConditionsGames[];
+			.catch((err) => Promise.reject({ id: 'GameService.getBoxConditions.getBoxConditions', error: err }));
+		return result as Conditions[];
 	}
 
-	static async getConditionsManual(): Promise<ConditionsGames[]> {
-		const result = await DatabaseUtil.query(DatabaseUtil.pool, getConditionsManual, [])
+	static async getNoticeConditions(): Promise<Conditions[]> {
+		const result = await DatabaseUtil.query(DatabaseUtil.pool, getNoticeConditions, [])
 			.then((res) => res.rows)
-			.catch((err) => Promise.reject({ id: 'GameService.getConditionsManual.getConditionsManual', error: err }));
-		return result as ConditionsGames[];
+			.catch((err) => Promise.reject({ id: 'GameService.getNoticeConditions.getNoticeConditions', error: err }));
+		return result as Conditions[];
 	}
 
 }

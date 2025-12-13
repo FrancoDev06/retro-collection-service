@@ -2,7 +2,7 @@ import ResponsesUtil from "@utils/responses.util";
 import { Router } from "express";
 import GameService from "@services/games.service";
 import { Request, Response, NextFunction } from "express";
-import { Game, Games, ConditionsGames } from "@utils/interfaces/games.interface";
+import { Game, Games, Conditions } from "@utils/interfaces/games.interface";
 import { Prices } from "@utils/interfaces/prices.interface";
 import { authMiddleware } from "@middlewares/auth.middleware";
 
@@ -217,22 +217,22 @@ router.get('/:id', authMiddleware, async (req: Request, res: Response, next: Nex
 /**
  * ROUTE API : Récupère tous les états de condition disponibles pour les jeux
  * 
- * @see GameService.getConditionsGames() - Fonction service appelée
- * @see getConditionsGames (games.queries.ts) - Requête SQL utilisée
+ * @see GameService.getConditionsCart() - Fonction service appelée
+ * @see getConditionsCart (games.queries.ts) - Requête SQL utilisée
  * 
- * @route GET /games/conditions/game
+ * @route GET /games/conditions/cart
  * @access Private (nécessite authentification)
  */
-router.get('/conditions/game', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+router.get('/conditions/cart', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 
-		const conditionsGames: ConditionsGames[] = await GameService.getConditionsGames();
-		if (!conditionsGames) {
-			return ResponsesUtil.notFound(res, { error: 'CONDITIONS_GAMES_NOT_FOUND' });
+		const cartConditions: Conditions[] = await GameService.getCartConditions();
+		if (!cartConditions) {
+			return ResponsesUtil.notFound(res, { error: 'CONDITIONS_CART_NOT_FOUND' });
 		}
-		return ResponsesUtil.handleResult(res, { info: 'execok', data: { conditionsGames } });
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { cartConditions } });
 	} catch (error) {
-		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_CONDITIONS_GAMES_FAILED', error: error });
+		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_CONDITIONS_CART_FAILED', error: error });
 	}
 });
 
@@ -247,11 +247,11 @@ router.get('/conditions/game', authMiddleware, async (req: Request, res: Respons
  */
 router.get('/conditions/box', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
-		const conditionsBox: ConditionsGames[] = await GameService.getConditionsBoxed();
-		if (!conditionsBox) {
+		const boxConditions: Conditions[] = await GameService.getBoxConditions();
+		if (!boxConditions) {
 			return ResponsesUtil.notFound(res, { error: 'CONDITIONS_BOX_NOT_FOUND' });
 		}
-		return ResponsesUtil.handleResult(res, { info: 'execok', data: { conditionsBox } });
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { boxConditions } });
 	} catch (error) {
 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_CONDITIONS_BOX_FAILED', error: error });
 	}
@@ -268,13 +268,13 @@ router.get('/conditions/box', authMiddleware, async (req: Request, res: Response
  */
 
 
-router.get('/conditions/manual', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+router.get('/conditions/notice', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
-		const conditionsManual: ConditionsGames[] = await GameService.getConditionsManual();
-		if (!conditionsManual) {
+		const noticeConditions: Conditions[] = await GameService.getNoticeConditions();
+		if (!noticeConditions) {
 			return ResponsesUtil.notFound(res, { error: 'CONDITIONS_MANUAL_NOT_FOUND' });
 		}
-		return ResponsesUtil.handleResult(res, { info: 'execok', data: { conditionsManual } });
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { noticeConditions } });
 	} catch (error) {
 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_CONDITIONS_MANUAL_FAILED', error: error });
 	}

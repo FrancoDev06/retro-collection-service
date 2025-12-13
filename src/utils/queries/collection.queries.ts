@@ -61,18 +61,15 @@ WHERE
  * @param $1 ll_user_id - ID de l'utilisateur
  * @param $2 ll_game_id - ID du jeu
  * @param $3 ll_platform_id - ID de la plateforme
- * @param $4 ll_status - Statut du jeu (ex: 'owned', 'wanted', etc.)
- * @param $5 ll_edition - Édition du jeu
- * @param $6 ll_format - Format du jeu (ex: 'physical', 'digital')
- * @param $7 ll_notes - Notes personnelles sur le jeu
- * @param $8 nb_price_paid - Prix payé pour le jeu
- * @param $9 ts_acquired_at - Date d'acquisition
- * @param $10 flag_has_game - Indique si l'utilisateur possède le jeu lui-même
- * @param $11 flag_has_box - Indique si l'utilisateur possède la boîte
- * @param $12 flag_has_notice - Indique si l'utilisateur possède la notice
- * @param $14 ll_cart_condition_id - ID de l'état de condition de la cartouche
- * @param $15 ll_box_condition_id - ID de l'état de condition de la boîte
- * @param $16 ll_notice_condition_id - ID de l'état de condition de la notice
+ * @param $4 ll_notes - Notes personnelles sur le jeu
+ * @param $5 nb_price_paid - Prix payé pour le jeu
+ * @param $6 ts_acquired_at - Date d'acquisition
+ * @param $7 flag_has_cart - Indique si l'utilisateur possède le jeu lui-même
+ * @param $8 flag_has_box - Indique si l'utilisateur possède la boîte
+ * @param $9 flag_has_notice - Indique si l'utilisateur possède la notice
+ * @param $10 ll_cart_condition_id - ID de l'état de condition de la cartouche
+ * @param $11 ll_box_condition_id - ID de l'état de condition de la boîte
+ * @param $12 ll_notice_condition_id - ID de l'état de condition de la notice
  * @returns L'ID de l'enregistrement créé
  */
 export const addGameToCollection = `
@@ -81,18 +78,15 @@ INSERT INTO
         ll_user_id,
         ll_game_id,
         ll_platform_id,
-        ll_status,
-        ll_edition,
-        ll_format,
         ll_notes,
         nb_price_paid,
         ts_acquired_at,
-        flag_has_game,
+        flag_has_cart,
         flag_has_box,
         flag_has_notice,
         ll_cart_condition_id,
         ll_box_condition_id,
-        ll_notice_condition_id,
+        ll_notice_condition_id
     )
 VALUES
     (
@@ -107,103 +101,11 @@ VALUES
         $9,
         $10,
         $11,
-        $12,
-        $13,
-        $14,
-        $15
+        $12
     )
 RETURNING
     id;
 `;
-
-/**
- * REQUÊTE SQL : Vérifie si un jeu spécifique existe déjà dans la collection d'un utilisateur
- * 
- * @see CollectionService.checkGameExistsInCollection() - Fonction service qui utilise cette requête
- * @see POST /collection/new - Route API qui utilise cette vérification avant d'ajouter un jeu
- * 
- * @param $1 ll_user_id - ID de l'utilisateur
- * @param $2 ll_game_id - ID du jeu
- * @param $3 ll_platform_id - ID de la plateforme
- * @returns Un booléen indiquant si le jeu existe (true) ou non (false) dans la collection active de l'utilisateur
- */
-export const checkGameExistsInCollection = `
-SELECT
-    EXISTS(
-        SELECT
-            1
-        FROM
-            assoc_users_games_collections
-        WHERE
-            flag_active = TRUE
-            AND ll_user_id = $1
-            AND ll_game_id = $2
-            AND ll_platform_id = $3
-        ) AS exists;
-`;
-
-/**
- * REQUÊTE SQL : Vérifie si une plateforme spécifique existe déjà dans la collection d'un utilisateur
- * 
- * @see CollectionService.checkPlatformExistsInCollection() - Fonction service qui utilise cette requête
- * @see POST /collection/new - Route API qui utilise cette vérification avant d'ajouter un jeu
- * 
- * @param $1 ll_user_id - ID de l'utilisateur
- * @param $2 ll_platform_id - ID de la plateforme
- * @returns Un booléen indiquant si la plateforme existe (true) ou non (false) dans la collection active de l'utilisateur
- */
-export const checkPlatformExistsInCollection = `
-SELECT
-    EXISTS(
-        SELECT
-            1
-        FROM
-            assoc_users_platforms
-        WHERE
-            flag_active = TRUE
-            AND ll_user_id = $1
-            AND ll_platform_id = $2
-        ) AS exists;
-`;
-
-/**
- * REQUÊTE SQL : Ajoute une plateforme à la collection d'un utilisateur
- * 
- * @see CollectionService.addPlatformToCollection() - Fonction service qui utilise cette requête
- * @note Cette fonctionnalité n'est pas encore exposée via une route API
- * 
- * @param $1 ll_user_id - ID de l'utilisateur
- * @param $2 ll_platform_id - ID de la plateforme
- * @param $3 nb_units - Nombre d'unités de la plateforme
- * @param $4 ll_condition_id - ID de l'état de condition de la plateforme
- * @param $5 ll_purchase_source - Source d'achat de la plateforme
- * @param $6 nb_price_paid - Prix payé pour la plateforme
- * @param $7 ts_acquired_at - Date d'acquisition
- * @param $8 ll_notes - Notes personnelles sur la plateforme
- * @returns L'ID de l'enregistrement créé
- */
-export const addPlatformToCollection = `
-INSERT INTO
-    assoc_users_platforms (
-        ll_user_id,
-        ll_platform_id,
-        nb_units,
-        ll_condition_id,
-        ll_purchase_source,
-        nb_price_paid,
-        ts_acquired_at,
-        ll_notes
-    )
-VALUES
-    ($1, $2, $3, $4, $5, $6, $7, $8)
-RETURNING
-    id;
-`;
-
-
-
-
-
 
 /**
  * REQUÊTE SQL : Récupère la liste des plateformes uniques présentes dans la collection de jeux d'un utilisateur
@@ -233,121 +135,39 @@ GROUP BY
     rp.ll_name
 ORDER BY
     rp.ll_name ASC;
-
-
 `;
 
 /**
- * REQUÊTE SQL : Compte le nombre total de plateformes uniques dans la collection de jeux d'un utilisateur
+ * REQUÊTE SQL : Récupère la liste des jeux dans la collection d'un utilisateur pour une plateforme spécifique
  * 
- * @see CollectionService.getPlatformsCount() - Fonction service qui utilise cette requête
- * @see GET /collection/:userId/platforms/count - Route API qui expose cette fonctionnalité
- * 
- * @param $1 ll_user_id - ID de l'utilisateur
- * @returns Le nombre total de plateformes distinctes dans la collection active de l'utilisateur
- */
-export const getPlatformsCount = `
-SELECT
-    COUNT(DISTINCT ll_platform_id) AS total_unique_platforms
-FROM
-    assoc_users_games_collections
-WHERE
-    flag_active = TRUE
-    AND ll_user_id = $1;
-`;
-
-/**
- * REQUÊTE SQL : Compte le nombre total de jeux dans la collection d'un utilisateur
- * 
- * @see CollectionService.getGamesCount() - Fonction service qui utilise cette requête
- * @see GET /collection/:userId/games/count - Route API qui expose cette fonctionnalité
+ * @see CollectionService.getGamesListByPlatformId() - Fonction service qui utilise cette requête
+ * @see GET /collection/:userId/platforms/:platformId/games/list - Route API qui expose cette fonctionnalité
  * 
  * @param $1 ll_user_id - ID de l'utilisateur
- * @returns Le nombre total de jeux dans la collection active de l'utilisateur
+ * @param $2 ll_platform_id - ID de la plateforme
+ * @returns La liste des jeux dans la collection active de l'utilisateur pour la plateforme spécifique
  */
-export const getGamesCount = `
-SELECT
-    COUNT(*) AS total
-FROM
-    assoc_users_games_collections
-WHERE
-    flag_active = TRUE
-    AND ll_user_id = $1;
-`;
-
-/**
- * REQUÊTE SQL : Calcule la valeur totale payée pour tous les jeux de la collection d'un utilisateur
- * 
- * @see CollectionService.getGamesValue() - Fonction service qui utilise cette requête
- * @see GET /collection/:userId/games/value - Route API qui expose cette fonctionnalité
- * 
- * @param $1 ll_user_id - ID de l'utilisateur
- * @returns La somme totale des prix payés pour tous les jeux dans la collection active de l'utilisateur
- */
-export const getGamesValue = `
-SELECT
-    SUM(nb_price_paid) AS total_value_paid
-FROM
-    assoc_users_games_collections
-WHERE
-    flag_active = TRUE
-    AND ll_user_id = $1;
-`;
-
-/**
- * REQUÊTE SQL : Compte le nombre de jeux CIB (Complete In Box) dans la collection d'un utilisateur
- * Un jeu CIB doit avoir le statut 'owned' et posséder la boîte, la notice et le jeu
- * 
- * @see CollectionService.getGamesCibCount() - Fonction service qui utilise cette requête
- * @see GET /collection/:userId/games/cib - Route API qui expose cette fonctionnalité
- * 
- * @param $1 ll_user_id - ID de l'utilisateur
- * @returns Le nombre total de jeux CIB (complets avec boîte, notice et jeu) dans la collection active de l'utilisateur
- */
-export const getGamesCibCount = `
-SELECT
-    COUNT(*) AS total_cib_games FROM assoc_users_games_collections
-WHERE
-    flag_active = TRUE
-    AND ll_user_id = $1
-    AND ll_status = 'owned'
-    AND flag_has_box = TRUE
-    AND flag_has_notice = TRUE
-    AND flag_has_game = TRUE
-`;
-
-
-export const getGamesCountByPlatformId = `
-SELECT
-    COUNT(*) AS total
-FROM
-    assoc_users_games_collections
-WHERE
-    flag_active = TRUE
-    AND ll_user_id = $1
-    AND ll_platform_id = $2;
-`;
-
 export const getGamesListByPlatformId = `
     SELECT
         rg.id,
-        rg.ll_slug,
-        rg.ll_title,
-        rg.ll_cover_image,
-        rg.ll_game_url,
-        rp.ll_name AS platform_name,
-        augc.ll_status,
-        augc.ll_edition,
-        augc.ll_format,
-        augc.ll_notes,
-        augc.nb_price_paid,
-        augc.ts_acquired_at,
-        augc.flag_has_box,
-        augc.flag_has_notice,
-        augc.ll_cart_condition_id,
-        augc.ll_box_condition_id,
-        augc.ll_notice_condition_id,
-        augc.flag_has_game
+        rg.ll_title as title,
+        rg.ll_cover_image as cover_image,
+        rg.ll_cover_image_large as cover_image_large,
+        rg.ll_game_url as game_url,
+        rp.ll_name as platform_name,
+        rg.ll_product_id as product_id,
+        rg.ll_publisher as publisher,
+        rg.ll_developer as developer,
+        rg.ll_description as description,
+        augc.ll_notes as notes,
+        augc.nb_price_paid as price_paid,
+        augc.ts_acquired_at as acquired_at,
+        augc.flag_has_box as has_box,
+        augc.flag_has_notice as has_notice,
+        augc.ll_cart_condition_id as cart_condition_id,
+        augc.ll_box_condition_id as box_condition_id,
+        augc.ll_notice_condition_id as notice_condition_id,
+        augc.flag_has_cart as has_cart
     FROM
         assoc_users_games_collections AS augc
     INNER JOIN ref_platforms AS rp ON rp.id = augc.ll_platform_id
@@ -359,3 +179,186 @@ export const getGamesListByPlatformId = `
     ORDER BY
         rg.ll_title ASC;
 `;
+
+/**
+ * REQUÊTE SQL : Vérifie si un jeu spécifique existe déjà dans la collection d'un utilisateur
+ * 
+ * @see CollectionService.checkGameExistsInCollection() - Fonction service qui utilise cette requête
+ * @see POST /collection/new - Route API qui utilise cette vérification avant d'ajouter un jeu
+ * 
+ * @param $1 ll_user_id - ID de l'utilisateur
+ * @param $2 ll_game_id - ID du jeu
+ * @param $3 ll_platform_id - ID de la plateforme
+ * @returns Un booléen indiquant si le jeu existe (true) ou non (false) dans la collection active de l'utilisateur
+ */
+export const checkGameExistsInCollection = `
+SELECT
+    EXISTS(
+        SELECT
+            1
+        FROM
+            assoc_users_games_collections
+        WHERE
+            flag_active = TRUE
+            AND ll_user_id = $1
+            AND ll_game_id = $2
+            AND ll_platform_id = $3
+        ) AS exists;
+`;
+
+// /**
+//  * REQUÊTE SQL : Vérifie si une plateforme spécifique existe déjà dans la collection d'un utilisateur
+//  * 
+//  * @see CollectionService.checkPlatformExistsInCollection() - Fonction service qui utilise cette requête
+//  * @see POST /collection/new - Route API qui utilise cette vérification avant d'ajouter un jeu
+//  * 
+//  * @param $1 ll_user_id - ID de l'utilisateur
+//  * @param $2 ll_platform_id - ID de la plateforme
+//  * @returns Un booléen indiquant si la plateforme existe (true) ou non (false) dans la collection active de l'utilisateur
+//  */
+// export const checkPlatformExistsInCollection = `
+// SELECT
+//     EXISTS(
+//         SELECT
+//             1
+//         FROM
+//             assoc_users_platforms
+//         WHERE
+//             flag_active = TRUE
+//             AND ll_user_id = $1
+//             AND ll_platform_id = $2
+//         ) AS exists;
+// `;
+
+// /**
+//  * REQUÊTE SQL : Ajoute une plateforme à la collection d'un utilisateur
+//  * 
+//  * @see CollectionService.addPlatformToCollection() - Fonction service qui utilise cette requête
+//  * @note Cette fonctionnalité n'est pas encore exposée via une route API
+//  * 
+//  * @param $1 ll_user_id - ID de l'utilisateur
+//  * @param $2 ll_platform_id - ID de la plateforme
+//  * @param $3 nb_units - Nombre d'unités de la plateforme
+//  * @param $4 ll_condition_id - ID de l'état de condition de la plateforme
+//  * @param $5 ll_purchase_source - Source d'achat de la plateforme
+//  * @param $6 nb_price_paid - Prix payé pour la plateforme
+//  * @param $7 ts_acquired_at - Date d'acquisition
+//  * @param $8 ll_notes - Notes personnelles sur la plateforme
+//  * @returns L'ID de l'enregistrement créé
+//  */
+// export const addPlatformToCollection = `
+// INSERT INTO
+//     assoc_users_platforms (
+//         ll_user_id,
+//         ll_platform_id,
+//         nb_units,
+//         ll_condition_id,
+//         ll_purchase_source,
+//         nb_price_paid,
+//         ts_acquired_at,
+//         ll_notes
+//     )
+// VALUES
+//     ($1, $2, $3, $4, $5, $6, $7, $8)
+// RETURNING
+//     id;
+// `;
+
+
+
+
+
+
+
+
+// /**
+//  * REQUÊTE SQL : Compte le nombre total de plateformes uniques dans la collection de jeux d'un utilisateur
+//  * 
+//  * @see CollectionService.getPlatformsCount() - Fonction service qui utilise cette requête
+//  * @see GET /collection/:userId/platforms/count - Route API qui expose cette fonctionnalité
+//  * 
+//  * @param $1 ll_user_id - ID de l'utilisateur
+//  * @returns Le nombre total de plateformes distinctes dans la collection active de l'utilisateur
+//  */
+// export const getPlatformsCount = `
+// SELECT
+//     COUNT(DISTINCT ll_platform_id) AS total_unique_platforms
+// FROM
+//     assoc_users_games_collections
+// WHERE
+//     flag_active = TRUE
+//     AND ll_user_id = $1;
+// `;
+
+// /**
+//  * REQUÊTE SQL : Compte le nombre total de jeux dans la collection d'un utilisateur
+//  * 
+//  * @see CollectionService.getGamesCount() - Fonction service qui utilise cette requête
+//  * @see GET /collection/:userId/games/count - Route API qui expose cette fonctionnalité
+//  * 
+//  * @param $1 ll_user_id - ID de l'utilisateur
+//  * @returns Le nombre total de jeux dans la collection active de l'utilisateur
+//  */
+// export const getGamesCount = `
+// SELECT
+//     COUNT(*) AS total
+// FROM
+//     assoc_users_games_collections
+// WHERE
+//     flag_active = TRUE
+//     AND ll_user_id = $1;
+// `;
+
+// /**
+//  * REQUÊTE SQL : Calcule la valeur totale payée pour tous les jeux de la collection d'un utilisateur
+//  * 
+//  * @see CollectionService.getGamesValue() - Fonction service qui utilise cette requête
+//  * @see GET /collection/:userId/games/value - Route API qui expose cette fonctionnalité
+//  * 
+//  * @param $1 ll_user_id - ID de l'utilisateur
+//  * @returns La somme totale des prix payés pour tous les jeux dans la collection active de l'utilisateur
+//  */
+// export const getGamesValue = `
+// SELECT
+//     SUM(nb_price_paid) AS total_value_paid
+// FROM
+//     assoc_users_games_collections
+// WHERE
+//     flag_active = TRUE
+//     AND ll_user_id = $1;
+// `;
+
+// /**
+//  * REQUÊTE SQL : Compte le nombre de jeux CIB (Complete In Box) dans la collection d'un utilisateur
+//  * Un jeu CIB doit avoir le statut 'owned' et posséder la boîte, la notice et le jeu
+//  * 
+//  * @see CollectionService.getGamesCibCount() - Fonction service qui utilise cette requête
+//  * @see GET /collection/:userId/games/cib - Route API qui expose cette fonctionnalité
+//  * 
+//  * @param $1 ll_user_id - ID de l'utilisateur
+//  * @returns Le nombre total de jeux CIB (complets avec boîte, notice et jeu) dans la collection active de l'utilisateur
+//  */
+// export const getGamesCibCount = `
+// SELECT
+//     COUNT(*) AS total_cib_games FROM assoc_users_games_collections
+// WHERE
+//     flag_active = TRUE
+//     AND ll_user_id = $1
+//     AND ll_status = 'owned'
+//     AND flag_has_box = TRUE
+//     AND flag_has_notice = TRUE
+//     AND flag_has_game = TRUE
+// `;
+
+
+// export const getGamesCountByPlatformId = `
+// SELECT
+//     COUNT(*) AS total
+// FROM
+//     assoc_users_games_collections
+// WHERE
+//     flag_active = TRUE
+//     AND ll_user_id = $1
+//     AND ll_platform_id = $2;
+// `;
+

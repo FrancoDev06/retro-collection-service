@@ -77,11 +77,11 @@ router.get('/me', authMiddleware, async (req: Request, res: Response, next: Next
 			return ResponsesUtil.unauthorizedAction(res, { message: 'Token invalide' });
 		}
 
-		const result: string = await UserService.getUserById(userId);
-		if (!result) {
+		const userInfo: string = await UserService.getUserById(userId);
+		if (!userInfo) {
 			return ResponsesUtil.notFound(res, { error: 'USER_INFO_NOT_FOUND' });
 		}
-		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { userInfo } });
 	} catch (error) {
 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_USER_INFO_FAILED', error: error });
 	}

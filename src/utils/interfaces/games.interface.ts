@@ -26,7 +26,7 @@ export interface Game {
 	platform_name: string;
 }
 
-export interface ConditionsGames {
+export interface Conditions {
 	id: string;
     code: string;
     label: string;

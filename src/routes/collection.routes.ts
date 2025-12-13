@@ -9,71 +9,6 @@ const router: Router = Router();
 
 
 /**
- * ROUTE API : Récupère tous les états de condition disponibles pour les boîtes de jeux
- * 
- * @see CollectionService.getConditionsBoxed() - Fonction service appelée
- * @see getConditionsBoxed (collection.queries.ts) - Requête SQL utilisée
- * 
- * @route GET /collection/conditions/box
- * @access Private (nécessite authentification)
- */
-router.get('/conditions/box',  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-	try {
-		const result = await CollectionService.getConditionsBoxed();
-		if (!result) {
-			return ResponsesUtil.notFound(res, { error: 'GAMES_STATUS_BOXED_NOT_FOUND' });
-		}
-		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
-	} catch (error) {
-		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_STATUS_BOXED_FAILED', error: error });
-	}
-});
-
-/**
- * ROUTE API : Récupère tous les états de condition disponibles pour les cartouches de jeux
- * 
- * @see CollectionService.getConditionsCart() - Fonction service appelée
- * @see getConditionsCart (collection.queries.ts) - Requête SQL utilisée
- * 
- * @route GET /collection/conditions/cart
- * @access Private (nécessite authentification)
- */
-router.get('/conditions/cart',  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-	try {
-
-		const result = await CollectionService.getConditionsCart();
-		if (!result) {
-			return ResponsesUtil.notFound(res, { error: 'GAME_STATUS_NOT_FOUND' });
-		}
-		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
-	} catch (error) {
-		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_STATUS_BOXED_FAILED', error: error });
-	}
-});
-
-/**
- * ROUTE API : Récupère tous les états de condition disponibles pour les notices/manuels de jeux
- * 
- * @see CollectionService.getConditionsManual() - Fonction service appelée
- * @see getConditionsManual (collection.queries.ts) - Requête SQL utilisée
- * 
- * @route GET /collection/conditions/manual
- * @access Private (nécessite authentification)
- */
-router.get('/conditions/manual',  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-	try {
-
-		const result = await CollectionService.getConditionsManual();
-		if (!result) {
-			return ResponsesUtil.notFound(res, { error: 'GAME_STATUS_NOT_FOUND' });
-		}
-		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
-	} catch (error) {
-		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_STATUS_BOXED_FAILED', error: error });
-	}
-});
-
-/**
  * ROUTE API : Ajoute un jeu à la collection d'un utilisateur
  * Vérifie d'abord si le jeu et la plateforme existent déjà dans la collection
  * 
@@ -86,51 +21,109 @@ router.get('/conditions/manual',  async (req: Request, res: Response, next: Next
  * @access Private (nécessite authentification)
  * @body {AddGameCollection} - Données du jeu à ajouter à la collection
  */
-router.post('/game/new',  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+router.post('/new',  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
-
 		const addGameCollection: AddGameCollection = req.body;
-		console.log("addGameCollection:", addGameCollection);
+		console.log('addGameCollection:', addGameCollection);
 
 		if (!addGameCollection || !addGameCollection.gameId || !addGameCollection.platformId) {
 			return ResponsesUtil.invalidParameters(res, { error: 'MISSING_PARAMETERS' });
 		}
 
-		// const gameExists = await CollectionService.checkGameExistsInCollection(addGameCollection.userId, addGameCollection.gameId , addGameCollection.platformId);
-
-
-		// const platformExists = await CollectionService.checkPlatformExistsInCollection(addGameCollection.userId, addGameCollection.platformId);
-		// if (platformExists) {
-		// 	return ResponsesUtil.invalidParameters(res, { error: 'PLATFORM_ALREADY_IN_COLLECTION' });
-		// }
-
+		const gameExists = await CollectionService.checkGameExistsInCollection(addGameCollection.userId, addGameCollection.gameId , addGameCollection.platformId);
+		console.log('gameExists:', gameExists);
+		
+		if (gameExists) {
+			return ResponsesUtil.invalidParameters(res, { error: 'GAME_ALREADY_IN_COLLECTION' });
+		}
 
 		const result = await CollectionService.addGameToCollection(
 			addGameCollection.userId,
 			addGameCollection.gameId,
 			addGameCollection.platformId,
-			addGameCollection.status,
-			addGameCollection.edition,
-			addGameCollection.format,
 			addGameCollection.notes,
 			addGameCollection.pricePaid,
 			addGameCollection.datePurchase,
-			addGameCollection.hasGame,
+			addGameCollection.hasCart,
 			addGameCollection.hasBox,
 			addGameCollection.hasNotice,
 			addGameCollection.cartConditionId,
 			addGameCollection.boxConditionId,
 			addGameCollection.noticeConditionId,
 		);
-
+		console.log('result:', result);
 		if (!result) {
 			return ResponsesUtil.notFound(res, { error: 'ADD_GAME_TO_COLLECTION_FAILED' });
 		}
 
-
 		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
 	} catch (error) {
-		return ResponsesUtil.somethingWentWrong(res, { id_case: 'ADD_GAME_TO_COLLECTION_FAILED', error: error });
+		return ResponsesUtil.somethingWentWrong(res, { error: 'ADD_GAME_TO_COLLECTION_FAILED', details: error });
+	}
+});
+
+/**
+ * ROUTE API : Récupère la liste des plateformes dans la collection d'un utilisateur
+ * 
+ * @see CollectionService.getPlatformList() - Fonction service appelée
+ * @see getPlatformList (collection.queries.ts) - Requête SQL utilisée
+ * 
+ * @route GET /collection/:userId/platforms/list
+ * @access Private (nécessite authentification)
+ * @param {string} userId - ID de l'utilisateur
+ */
+router.get('/:userId/platforms/list',  async (req: Request, res: Response, next: NextFunction): Promise<void> => {	
+	try {
+		const userId = req.params.userId;
+		if (!userId) {
+			return ResponsesUtil.invalidParameters(res, { error: 'USER_ID_NOT_FOUND' });
+		}
+		const platformsList = await CollectionService.getPlatformList(userId);
+		if (!platformsList) {
+			return ResponsesUtil.notFound(res, { error: 'PLATFORM_LIST_NOT_FOUND' });
+		}
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { platformsList } });
+	} catch (error) {
+		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_PLATFORM_LIST_FAILED', error: error });
+	}
+});
+
+
+/**
+ * ROUTE API : Récupère la liste des jeux dans la collection d'un utilisateur pour une plateforme spécifique
+ * 
+ * @see CollectionService.getGamesListByPlatformId() - Fonction service appelée
+ * @see getGamesListByPlatformId (collection.queries.ts) - Requête SQL utilisée
+ * 
+ * @route GET /collection/:userId/platforms/:platformId/games/list
+ * @access Private (nécessite authentification)
+ * @param {string} userId - ID de l'utilisateur
+ * @param {string} platformId - ID de la plateforme
+ */
+router.get('/:userId/platform/:platformId/games/list',  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+	try {
+		const userId = req.params.userId;
+		const platformId = req.params.platformId;
+		if (!userId || !platformId) {
+			return ResponsesUtil.invalidParameters(res, { error: 'USER_ID_OR_PLATFORM_ID_NOT_FOUND' });
+		}
+		const gamesList = await CollectionService.getGamesListByPlatformId(userId, platformId);
+		if (!gamesList) {
+			return ResponsesUtil.notFound(res, { error: 'GAMES_LIST_BY_PLATFORM_NOT_FOUND' });
+		}
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { gamesList } });
+	} catch (error) {
+		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_GAMES_LIST_BY_PLATFORM_FAILED', error: error });
+	}
+});
+
+router.post('/:userId/collection/game/delete', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+	try {
+		const userId = req.params.userId;
+		const gameId = req.body.gameId;
+		const platformId = req.body.platformId;
+	} catch (error) {
+		return ResponsesUtil.somethingWentWrong(res, { id_case: 'DELETE_GAME_FROM_COLLECTION_FAILED', error: error });
 	}
 });
 
@@ -243,38 +236,9 @@ router.post('/game/new',  async (req: Request, res: Response, next: NextFunction
 
 
 
-// router.get('/:userId/platforms/list',  async (req: Request, res: Response, next: NextFunction): Promise<void> => {	
-// 	try {
-// 		const userId = req.params.userId;
-// 		if (!userId) {
-// 			return ResponsesUtil.invalidParameters(res, { error: 'USER_ID_NOT_FOUND' });
-// 		}
-// 		const result = await CollectionService.getPlatformList(userId);
-// 		if (!result) {
-// 			return ResponsesUtil.notFound(res, { error: 'PLATFORM_LIST_NOT_FOUND' });
-// 		}
-// 		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
-// 	} catch (error) {
-// 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_PLATFORM_LIST_FAILED', error: error });
-// 	}
-// });
 
-// router.get('/:userId/platforms/:platformId/games/list',  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-// 	try {
-// 		const userId = req.params.userId;
-// 		const platformId = req.params.platformId;
-// 		if (!userId || !platformId) {
-// 			return ResponsesUtil.invalidParameters(res, { error: 'USER_ID_OR_PLATFORM_ID_NOT_FOUND' });
-// 		}
-// 		const result = await CollectionService.getGamesListByPlatformId(userId, platformId);
-// 		if (!result) {
-// 			return ResponsesUtil.notFound(res, { error: 'GAMES_LIST_BY_PLATFORM_NOT_FOUND' });
-// 		}
-// 		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
-// 	} catch (error) {
-// 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_GAMES_LIST_BY_PLATFORM_FAILED', error: error });
-// 	}
-// });
+
+
 
 /***************************************************************
 * NOT ALLOWED METHODS HANDLING

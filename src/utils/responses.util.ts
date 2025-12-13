@@ -46,7 +46,7 @@ export default class ResponsesUtil {
 	}
 
 
-	static handleResult<T>(res: Response, data: RequestReturn<T>, code: number = 200): void {
+	static handleResult<T>(res: Response, data: RequestReturn<T>,  code: number = 200): void {
 		res.status(code).json(data);
 	}
 }
