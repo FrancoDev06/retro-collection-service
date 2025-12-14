@@ -10,28 +10,6 @@ const router: Router = Router();
 
 
 /**
- * ROUTE API : Récupère la liste des jeux
- * 
- * @see GameService.getGames() - Fonction service appelée
- * @see getGames (games.queries.ts) - Requête SQL utilisée
- * 
- * @route GET /games
- * @access Private (nécessite authentification)
- */
-router.get('/', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-	try {
-		const games : Games[] = await GameService.getGames();
-		if (!games) {
-			return ResponsesUtil.notFound(res, { error: 'GAMES_NOT_FOUND' });
-		}
-
-		return ResponsesUtil.handleResult(res, { info: 'execok', data: { games } });
-	} catch (error) {
-		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_GAMES_FAILED', error: error });
-	}
-});
-
-/**
  * ROUTE API : Récupère la liste des jeux limitée
  * 
  * @see GameService.getGamesLimited() - Fonction service appelée
@@ -43,12 +21,16 @@ router.get('/', authMiddleware, async (req: Request, res: Response, next: NextFu
 router.post('/limited', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 		const { limit, offset } = req.body;
-		const gamesLimited : Games[] = await GameService.getGamesLimited(limit, offset);
-		if (!gamesLimited) {
+		const userId = (req as any).user?.userId;
+		if (!userId) {
+			return ResponsesUtil.unauthorizedAction(res, { message: 'User ID manquant' });
+		}
+		const result : Games[] = await GameService.getGamesLimited(limit, offset, userId);
+		if (!result) {
 			return ResponsesUtil.notFound(res, { error: 'GAMES_LIMITED_NOT_FOUND' });
 		}
 
-		return ResponsesUtil.handleResult(res, { info: 'execok', data: { gamesLimited } });
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
 	} catch (error) {
 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_GAMES_LIMITED_FAILED', error: error });
 	}
@@ -65,24 +47,33 @@ router.post('/limited', authMiddleware, async (req: Request, res: Response, next
  */
 router.get('/count', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
-		const count : number = await GameService.getGamesCount();
-		if (count === undefined || count === null) {
+		const result : number = await GameService.getGamesCount();
+		if (result === undefined || result === null) {
 			return ResponsesUtil.notFound(res, { error: 'GAMES_COUNT_NOT_FOUND' });
 		}
-		return ResponsesUtil.handleResult(res, { info: 'execok', data: { count } });
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
 	} catch (error) {
 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_GAMES_COUNT_FAILED', error: error });
 	}
 });
 
+/**
+ * ROUTE API : Récupère la liste des jeux par plateforme
+ * 
+ * @see GameService.getGamesByPlatform() - Fonction service appelée
+ * @see getGamesByPlatform (games.queries.ts) - Requête SQL utilisée
+ * 
+ * @route GET /games/platform/:id
+ * @access Private (nécessite authentification)
+ */
 router.get('/platform/:id', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 		const { id } = req.params;
-		const gamesPlatforms: Games[] = await GameService.getGamesByPlatform (id);
-		if (!gamesPlatforms) {
+		const result: Games[] = await GameService.getGamesByPlatform (id);
+		if (!result) {
 			return ResponsesUtil.notFound(res, { error: 'GAMES_BY_PLATFORM_ID_NOT_FOUND' });
 		}
-		return ResponsesUtil.handleResult(res, { info: 'execok', data: { gamesPlatforms } });
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
 	} catch (error) {
 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_GAMES_PLATFORMS_LIMITED_FAILED', error: error });
 	}
@@ -101,11 +92,11 @@ router.post('/platform/:id/limited', authMiddleware, async (req: Request, res: R
 	try {
 		const { id } = req.params;
 		const { limit, offset } = req.body;
-		const gamesPlatformsLimited: Games[] = await GameService.getGamesLimitedByPlatformId (id, limit, offset);
-		if (!gamesPlatformsLimited) {
+		const result: Games[] = await GameService.getGamesLimitedByPlatformId (id, limit, offset);
+		if (!result) {
 			return ResponsesUtil.notFound(res, { error: 'GAMES_PLATFORMS_LIMITED_NOT_FOUND' });
 		}
-		return ResponsesUtil.handleResult(res, { info: 'execok', data: { gamesPlatformsLimited } });
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
 	} catch (error) {
 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_GAMES_PLATFORMS_LIMITED_FAILED', error: error });
 	}
@@ -123,11 +114,11 @@ router.post('/platform/:id/limited', authMiddleware, async (req: Request, res: R
 router.get('/platform/:id/limited/count', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 		const { id } = req.params;
-		const count: number = await GameService.getGamesCountByPlatformId(id);
-		if (!count) {
+		const result: number = await GameService.getGamesCountByPlatformId(id);
+		if (!result) {
 			return ResponsesUtil.notFound(res, { error: 'GAMES_COUNT_BY_PLATFORM_ID_NOT_FOUND' });
 		}
-		return ResponsesUtil.handleResult(res, { info: 'execok', data: { count } });
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
 	} catch (error) {
 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_GAMES_COUNT_BY_PLATFORM_ID_FAILED', error: error });
 	}
@@ -146,12 +137,15 @@ router.post('/search', authMiddleware, async (req: Request, res: Response, next:
 	try {
 
 		const { limit, offset , searchTerm } = req.body;
-		console.log(limit, offset, searchTerm);
-		const gamesSearch: Games[] = await GameService.getGamesSearch(searchTerm, limit, offset);
-		if (!gamesSearch) {
+		const userId = (req as any).user?.userId;
+		if (!userId) {
+			return ResponsesUtil.unauthorizedAction(res, { message: 'User ID manquant' });
+		}
+		const result: Games[] = await GameService.getGamesSearch(searchTerm, limit, offset, userId);
+		if (!result) {
 			return ResponsesUtil.notFound(res, { error: 'GAMES_SEARCH_NOT_FOUND' });
 		}
-		return ResponsesUtil.handleResult(res, { info: 'execok', data: { gamesSearch } });
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
 	} catch (error) {
 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_GAMES_SEARCH_FAILED', error: error });
 	}
@@ -169,11 +163,11 @@ router.post('/search', authMiddleware, async (req: Request, res: Response, next:
 router.post('/search/count', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 		const { searchTerm } = req.body;
-		const count: number = await GameService.getGamesSearchCount(searchTerm);
-		if (!count) {
+		const result: number = await GameService.getGamesSearchCount(searchTerm);
+		if (!result) {
 			return ResponsesUtil.notFound(res, { error: 'GAMES_SEARCH_COUNT_NOT_FOUND' });
 		}
-	return ResponsesUtil.handleResult(res, { info: 'execok', data: { count } });
+	return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
 	} catch (error) {
 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_GAMES_SEARCH_COUNT_FAILED', error: error });
 	}
@@ -182,11 +176,11 @@ router.post('/search/count', authMiddleware, async (req: Request, res: Response,
 router.post('/prices', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 		const { gameId, platformId } = req.body;
-		const prices: Prices[] = await GameService.getGamePrices(gameId, platformId);
-		if (!prices) {
+		const result: Prices[] = await GameService.getGamePrices(gameId, platformId);
+		if (!result) {
 			return ResponsesUtil.notFound(res, { error: 'PRICES_NOT_FOUND' });
 		}
-		return ResponsesUtil.handleResult(res, { info: 'execok', data: { prices } });
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
 	} catch (error) {
 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_PRICES_FAILED', error: error });
 	}
@@ -204,11 +198,11 @@ router.post('/prices', authMiddleware, async (req: Request, res: Response, next:
 router.get('/:id', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 		const { id } = req.params;
-		const game : Game = await GameService.getGame(id);
-		if (!game) {
+		const result : Game = await GameService.getGame(id);
+		if (!result) {
 			return ResponsesUtil.notFound(res, { error: 'GAME_NOT_FOUND' });
 		}
-		return ResponsesUtil.handleResult(res, { info: 'execok', data: { game } });
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
 	} catch (error) {
 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_GAME_FAILED', error: error });
 	}
@@ -226,11 +220,11 @@ router.get('/:id', authMiddleware, async (req: Request, res: Response, next: Nex
 router.get('/conditions/cart', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 
-		const cartConditions: Conditions[] = await GameService.getCartConditions();
-		if (!cartConditions) {
+		const result: Conditions[] = await GameService.getCartConditions();
+		if (!result) {
 			return ResponsesUtil.notFound(res, { error: 'CONDITIONS_CART_NOT_FOUND' });
 		}
-		return ResponsesUtil.handleResult(res, { info: 'execok', data: { cartConditions } });
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
 	} catch (error) {
 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_CONDITIONS_CART_FAILED', error: error });
 	}
@@ -247,11 +241,11 @@ router.get('/conditions/cart', authMiddleware, async (req: Request, res: Respons
  */
 router.get('/conditions/box', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
-		const boxConditions: Conditions[] = await GameService.getBoxConditions();
-		if (!boxConditions) {
+		const result: Conditions[] = await GameService.getBoxConditions();
+		if (!result) {
 			return ResponsesUtil.notFound(res, { error: 'CONDITIONS_BOX_NOT_FOUND' });
 		}
-		return ResponsesUtil.handleResult(res, { info: 'execok', data: { boxConditions } });
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
 	} catch (error) {
 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_CONDITIONS_BOX_FAILED', error: error });
 	}
@@ -270,11 +264,11 @@ router.get('/conditions/box', authMiddleware, async (req: Request, res: Response
 
 router.get('/conditions/notice', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
-		const noticeConditions: Conditions[] = await GameService.getNoticeConditions();
-		if (!noticeConditions) {
+		const result: Conditions[] = await GameService.getNoticeConditions();
+		if (!result) {
 			return ResponsesUtil.notFound(res, { error: 'CONDITIONS_MANUAL_NOT_FOUND' });
 		}
-		return ResponsesUtil.handleResult(res, { info: 'execok', data: { noticeConditions } });
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
 	} catch (error) {
 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_CONDITIONS_MANUAL_FAILED', error: error });
 	}

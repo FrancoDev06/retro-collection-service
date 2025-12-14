@@ -7,6 +7,8 @@ export interface Games {
 	genre_name: string;
 	platform_id: string;
 	platform_name: string;
+	in_collection?: boolean;
+	in_wishlist?: boolean;
 }
 
 export interface Game {

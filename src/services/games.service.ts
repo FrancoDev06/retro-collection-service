@@ -1,17 +1,11 @@
 import DatabaseUtil from "@utils/database";
 import { Conditions, Game, Games } from "@utils/interfaces/games.interface";
-import { getGames, getGamesLimited, getGame, getGamesCount, getGamesLimitedByPlatformId, getGamesCountByPlatformId, getGamesSearch, getGamesSearchCount, getGamePrices, getGamesByPlatform } from "@utils/queries/games.queries";
+import { getGamesLimited, getGame, getGamesCount, getGamesLimitedByPlatformId, getGamesCountByPlatformId, getGamesSearch, getGamesSearchCount, getGamePrices, getGamesByPlatform } from "@utils/queries/games.queries";
 import { Prices } from "@utils/interfaces/prices.interface";
 import { getCartConditions, getBoxConditions, getNoticeConditions } from "@utils/queries/games.queries";
 
 export default class GameService {
 
-	static async getGames(): Promise<Games[]> {
-		const result = await DatabaseUtil.query(DatabaseUtil.pool, getGames, [])
-			.then((res) => res.rows)
-			.catch((err) => Promise.reject({ id: 'GameService.getGames.getGames', error: err }));
-		return result as Games[];
-	}	
 
 	static async getGame(id: string): Promise<Game> {
 		const result = await DatabaseUtil.query(DatabaseUtil.pool, getGame, [id])
@@ -20,8 +14,8 @@ export default class GameService {
 		return result as Game;
 	}
 
-	static async getGamesLimited(limit: number, offset: number): Promise<Games[]> {
-		const result = await DatabaseUtil.query(DatabaseUtil.pool, getGamesLimited, [limit, offset])
+	static async getGamesLimited(limit: number, offset: number, userId: string): Promise<Games[]> {
+		const result = await DatabaseUtil.query(DatabaseUtil.pool, getGamesLimited, [limit, offset, userId])
 			.then((res) => res.rows)
 			.catch((err) => Promise.reject({ id: 'GameService.getGamesLimited.getGamesLimited', error: err }));
 		return result as Games[];
@@ -48,8 +42,8 @@ export default class GameService {
 		return result;
 	}
 
-	static async getGamesSearch(query: string, limit: number, offset: number): Promise<Games[]> {
-		const result = await DatabaseUtil.query(DatabaseUtil.pool, getGamesSearch, [query, limit, offset])
+	static async getGamesSearch(query: string, limit: number, offset: number, userId?: string): Promise<Games[]> {
+		const result = await DatabaseUtil.query(DatabaseUtil.pool, getGamesSearch, [query, limit, offset, userId || null])
 			.then((res) => res.rows)
 			.catch((err) => Promise.reject({ id: 'GameService.getGamesSearch.getGamesSearch', error: err }));
 		return result as Games[];

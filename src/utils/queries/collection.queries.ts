@@ -108,6 +108,29 @@ RETURNING
 `;
 
 /**
+ * REQUÊTE SQL : Supprime un jeu de la collection d'un utilisateur
+ * 
+ * @see CollectionService.deleteGameFromCollection() - Fonction service qui utilise cette requête
+ * @see POST /collection/:userId/game/delete - Route API qui expose cette fonctionnalité
+ * 
+ * @param $1 ll_user_id - ID de l'utilisateur
+ * @param $2 ll_game_id - ID du jeu
+ * @param $3 ll_platform_id - ID de la plateforme
+ * @returns L'ID de l'enregistrement supprimé
+ */
+export const deleteGameFromCollection = `
+UPDATE
+    assoc_users_games_collections
+SET
+    flag_active = FALSE
+WHERE
+    ll_user_id = $1
+    AND ll_game_id = $2
+    AND ll_platform_id = $3
+    AND flag_active = TRUE
+`;
+
+/**
  * REQUÊTE SQL : Récupère la liste des plateformes uniques présentes dans la collection de jeux d'un utilisateur
  * 
  * @see CollectionService.getPlatformList() - Fonction service commentée (non utilisée actuellement)

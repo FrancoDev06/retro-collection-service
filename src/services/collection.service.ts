@@ -1,5 +1,5 @@
 import DatabaseUtil from "@utils/database";
-import { getConditionsBoxed, addGameToCollection, getConditionsCart, getConditionsManual, getPlatformList, getGamesListByPlatformId, checkGameExistsInCollection } from "@utils/queries/collection.queries";
+import { addGameToCollection,getPlatformList, getGamesListByPlatformId, checkGameExistsInCollection, deleteGameFromCollection } from "@utils/queries/collection.queries";
 
 
 export default class CollectionService {
@@ -14,13 +14,10 @@ export default class CollectionService {
 	 * @param userId - ID de l'utilisateur
 	 * @param gameId - ID du jeu
 	 * @param platformId - ID de la plateforme
-	 * @param status - Statut du jeu (ex: 'owned', 'wanted', etc.)
-	 * @param edition - Édition du jeu
-	 * @param format - Format du jeu (ex: 'physical', 'digital')
 	 * @param notes - Notes personnelles sur le jeu
 	 * @param pricePaid - Prix payé pour le jeu
 	 * @param datePurchase - Date d'acquisition
-	 * @param hasGame - Indique si l'utilisateur possède le jeu lui-même
+	 * @param hasCart - Indique si l'utilisateur possède le jeu lui-même
 	 * @param hasBox - Indique si l'utilisateur possède la boîte
 	 * @param hasNotice - Indique si l'utilisateur possède la notice
 	 * @param cartConditionId - ID de l'état de condition de la cartouche
@@ -71,6 +68,17 @@ export default class CollectionService {
 		])
 			.then((res) => res.rows[0])
 			.catch((err) => Promise.reject({ id: 'CollectionService.addGameToCollection.addGameToCollection', error: err }));
+		return result;
+	}
+
+
+	static async deleteGameFromCollection(userId: string, gameId: string, platformId: string): Promise<any> {
+		console.log('userId:', userId);
+		console.log('gameId:', gameId);
+		console.log('platformId:', platformId);
+		const result = await DatabaseUtil.query(DatabaseUtil.pool, deleteGameFromCollection, [userId, gameId, platformId])
+			.then((res) => res.rows[0])
+			.catch((err) => Promise.reject({ id: 'CollectionService.deleteGameFromCollection.deleteGameFromCollection', error: err }));
 		return result;
 	}
 

@@ -62,6 +62,25 @@ router.post('/new',  async (req: Request, res: Response, next: NextFunction): Pr
 	}
 });
 
+router.post('/game/delete', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+	try {
+		const { gameId, userId, platformId } = req.body;
+		console.log('gameId:', gameId);
+		console.log('userId:', userId);
+		console.log('platformId:', platformId);
+		if (!gameId || !userId || !platformId) {
+			return ResponsesUtil.invalidParameters(res, { error: 'MISSING_PARAMETERS' });
+		}
+		const result = await CollectionService.deleteGameFromCollection(userId, gameId, platformId);
+		if (!result) {
+			return ResponsesUtil.notFound(res, { error: 'DELETE_GAME_FROM_COLLECTION_FAILED' });
+		}
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
+	} catch (error) {
+		return ResponsesUtil.somethingWentWrong(res, { id_case: 'DELETE_GAME_FROM_COLLECTION_FAILED', error: error });
+	}
+});
+
 /**
  * ROUTE API : Récupère la liste des plateformes dans la collection d'un utilisateur
  * 
