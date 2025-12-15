@@ -7,11 +7,11 @@ const router: Router = Router();
 
 router.get('/', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
-	const platforms: Platforms[] = await PlatformService.getPlatforms();
-	if (!platforms) {
+	const result: Platforms[] = await PlatformService.getPlatforms();
+	if (!result) {
 		return ResponsesUtil.notFound(res, { error: 'ALL_PLATFORMS_NOT_FOUND' });
 		}
-		return ResponsesUtil.handleResult(res, { info: 'execok', data: { platforms } });
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
 	} catch (error) {
 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_PLATFORMS_FAILED', error: error });
 	}
