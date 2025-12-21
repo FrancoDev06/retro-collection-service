@@ -1,17 +1,36 @@
 export interface Collection {
 	id: string;
-	ll_user_id: string;
-	ll_game_id: string;
-	ll_platform_id: string;
-	ll_notes: string;
-	nb_price_paid: number;
-	ts_acquired_at: string;
-	flag_has_cart: boolean;
-	flag_has_box: boolean;
-	flag_has_notice: boolean;
-	ll_cart_condition_id: string;
-	ll_box_condition_id: string;
-	ll_notice_condition_id: string;
+	gameId: string;
+	title: string;
+	coverImage: string;
+	coverImageLarge: string;
+	gameUrl: string;
+	platformName: string;
+	productId: string;
+	publisher: string;
+	developer: string;
+	description: string;
+	notes: string;
+	pricePaid: number;
+	acquiredAt: Date;
+	hasBox: boolean;
+	hasNotice: boolean;
+	cartConditionId: string;
+	cartConditionCode?: string;
+	cartConditionLabel?: string;
+	cartConditionDescription?: string;
+	cartConditionRating?: number;
+	boxConditionId: string;
+	boxConditionCode?: string;
+	boxConditionLabel?: string;
+	boxConditionDescription?: string;
+	boxConditionRating?: number;
+	noticeConditionId: string;
+	noticeConditionCode?: string;
+	noticeConditionLabel?: string;
+	noticeConditionDescription?: string;
+	noticeConditionRating?: number;
+	hasCart: boolean;
 }
 
 export interface AddGameCollection {
@@ -39,4 +58,16 @@ export interface AddPlatformCollection {
 	cartConditionId: string;
 	boxConditionId: string;
 	conditionId: string;
+}
+
+export interface CollectionPlatform {
+	userId: string;
+	platformId: string;
+	platformName: string;
+	units: number;
+	conditionStateId: string;
+	purchaseSource: string;
+	pricePaid: number;
+	acquiredAt: Date;
+	notes: string;
 }

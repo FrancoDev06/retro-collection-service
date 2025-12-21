@@ -4,28 +4,8 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 -- TABLES DE RÉFÉRENCE
 -- ============================================
 
-CREATE TABLE ref_platforms (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    ll_slug VARCHAR(255) NOT NULL UNIQUE,
-    ll_name VARCHAR(255) NOT NULL,
-    ll_manufacturer VARCHAR(255),
-    ll_url TEXT,
-    ll_details JSONB,
-    ts_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    ts_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    flag_active BOOLEAN DEFAULT TRUE
-);
-
-CREATE TABLE ref_genres (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    ll_name VARCHAR(120) NOT NULL UNIQUE,
-    ts_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    ts_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    flag_active BOOLEAN DEFAULT TRUE
-);
-
 CREATE TABLE ref_regions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_region UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     ll_code VARCHAR(10) NOT NULL UNIQUE,
     ll_label VARCHAR(60) NOT NULL,
     ts_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -33,11 +13,34 @@ CREATE TABLE ref_regions (
     flag_active BOOLEAN DEFAULT TRUE
 );
 
+CREATE TABLE ref_platforms (
+    id_platform UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    ll_slug VARCHAR(255) NOT NULL UNIQUE,
+    ll_name VARCHAR(255) NOT NULL,
+    ll_manufacturer VARCHAR(255),
+    ll_url TEXT,
+    ll_details JSONB,
+    id_region UUID NOT NULL,
+    ts_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ts_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    flag_active BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (id_region) REFERENCES ref_regions(id_region) ON DELETE CASCADE,
+    CONSTRAINT unique_platform_region UNIQUE (ll_slug, id_region)
+);
+
+CREATE TABLE ref_genres (
+    id_genre UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    ll_name VARCHAR(120) NOT NULL UNIQUE,
+    ts_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ts_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    flag_active BOOLEAN DEFAULT TRUE
+);
+
 CREATE TABLE ref_condition_states (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_condition_state UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     ll_code VARCHAR(20) NOT NULL,
     ll_label VARCHAR(60) NOT NULL,
-    ll_element_type VARCHAR(20) NOT NULL CHECK (ll_element_type IN ('cart', 'manual', 'box')),
+    ll_element_type VARCHAR(20) NOT NULL CHECK (ll_element_type IN ('cart', 'manual', 'box', 'console')),
     ll_description TEXT NOT NULL,
     nb_rating INTEGER CHECK (nb_rating >= 0 AND nb_rating <= 5),
     ts_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -47,7 +50,7 @@ CREATE TABLE ref_condition_states (
 );
 
 CREATE TABLE ref_games (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_game UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     ll_slug VARCHAR(255) NOT NULL UNIQUE,
     ll_title VARCHAR(255) NOT NULL,
     ll_cover_image TEXT,
@@ -58,13 +61,16 @@ CREATE TABLE ref_games (
     ll_developer VARCHAR(255),
     ll_description TEXT,
     ts_released TIMESTAMP,
+    id_region UUID NOT NULL,
     ts_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     ts_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    flag_active BOOLEAN DEFAULT TRUE
+    flag_active BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (id_region) REFERENCES ref_regions(id_region) ON DELETE CASCADE,
+    CONSTRAINT unique_game_region UNIQUE (ll_slug, id_region)
 );
 
 CREATE TABLE ref_users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_user UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     ll_username VARCHAR(255) NOT NULL,
     ll_email VARCHAR(255) NOT NULL UNIQUE,
     ll_password_hash VARCHAR(255) NOT NULL,
@@ -79,12 +85,10 @@ CREATE TABLE ref_users (
 -- ============================================
 
 CREATE TABLE assoc_games_platforms (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    ll_game_id UUID NOT NULL,
-    ll_platform_id UUID NOT NULL,
+    id_game_platform UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_game UUID NOT NULL,
+    id_platform UUID NOT NULL,
     ts_release_platform TIMESTAMP,
-    ll_region_code VARCHAR(10) NOT NULL DEFAULT 'GLOBAL',
-    ll_region_label VARCHAR(60),
     ll_console_url TEXT,
     ll_publisher VARCHAR(255),
     ll_developer VARCHAR(255),
@@ -93,27 +97,26 @@ CREATE TABLE assoc_games_platforms (
     ts_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     ts_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     flag_active BOOLEAN DEFAULT TRUE,
-    FOREIGN KEY (ll_game_id) REFERENCES ref_games(id) ON DELETE CASCADE,
-    FOREIGN KEY (ll_platform_id) REFERENCES ref_platforms(id) ON DELETE CASCADE,
-    FOREIGN KEY (ll_region_code) REFERENCES ref_regions(ll_code),
-    CONSTRAINT unique_game_platform UNIQUE (ll_game_id, ll_platform_id, ll_region_code)
+    FOREIGN KEY (id_game) REFERENCES ref_games(id_game) ON DELETE CASCADE,
+    FOREIGN KEY (id_platform) REFERENCES ref_platforms(id_platform) ON DELETE CASCADE,
+    CONSTRAINT unique_game_platform UNIQUE (id_game, id_platform)
 );
 
 CREATE TABLE assoc_games_genres (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    ll_game_id UUID NOT NULL,
-    ll_genre_id UUID NOT NULL,
+    id_game_genre UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_game UUID NOT NULL,
+    id_genre UUID NOT NULL,
     ts_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     ts_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     flag_active BOOLEAN DEFAULT TRUE,
-    FOREIGN KEY (ll_game_id) REFERENCES ref_games(id) ON DELETE CASCADE,
-    FOREIGN KEY (ll_genre_id) REFERENCES ref_genres(id) ON DELETE CASCADE,
-    CONSTRAINT unique_game_genre UNIQUE (ll_game_id, ll_genre_id)
+    FOREIGN KEY (id_game) REFERENCES ref_games(id_game) ON DELETE CASCADE,
+    FOREIGN KEY (id_genre) REFERENCES ref_genres(id_genre) ON DELETE CASCADE,
+    CONSTRAINT unique_game_genre UNIQUE (id_game, id_genre)
 );
 
 CREATE TABLE ref_tokens (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    ll_user_id UUID NOT NULL,
+    id_token UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_user UUID NOT NULL,
     ll_token TEXT NOT NULL UNIQUE,
     ll_refresh_token TEXT UNIQUE,
     ll_token_type VARCHAR(30) NOT NULL DEFAULT 'access',
@@ -123,7 +126,7 @@ CREATE TABLE ref_tokens (
     ts_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     ts_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     flag_active BOOLEAN DEFAULT TRUE,
-    FOREIGN KEY (ll_user_id) REFERENCES ref_users(id) ON DELETE CASCADE,
+    FOREIGN KEY (id_user) REFERENCES ref_users(id_user) ON DELETE CASCADE,
     CONSTRAINT check_token_dates CHECK (
         ts_expires_at > ts_created_at
         AND (ts_refresh_expires_at IS NULL OR ts_refresh_expires_at > ts_expires_at)
@@ -131,9 +134,9 @@ CREATE TABLE ref_tokens (
 );
 
 CREATE TABLE ref_market_prices (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    ll_game_id UUID NOT NULL,
-    ll_platform_id UUID NOT NULL,
+    id_market_price UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_game UUID NOT NULL,
+    id_platform UUID NOT NULL,
     ll_price_type VARCHAR(20) DEFAULT 'retail' CHECK (ll_price_type IN ('loose', 'cib', 'new', 'retail')),
     nb_price_retail NUMERIC(10,2) CHECK (nb_price_retail >= 0),
     nb_price_change NUMERIC(10,2),
@@ -144,16 +147,16 @@ CREATE TABLE ref_market_prices (
     ts_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     ts_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     flag_active BOOLEAN DEFAULT TRUE,
-    FOREIGN KEY (ll_game_id) REFERENCES ref_games(id) ON DELETE CASCADE,
-    FOREIGN KEY (ll_platform_id) REFERENCES ref_platforms(id) ON DELETE CASCADE,
-    CONSTRAINT unique_market_price UNIQUE (ll_game_id, ll_platform_id, ll_price_type, ts_collected_at)
+    FOREIGN KEY (id_game) REFERENCES ref_games(id_game) ON DELETE CASCADE,
+    FOREIGN KEY (id_platform) REFERENCES ref_platforms(id_platform) ON DELETE CASCADE,
+    CONSTRAINT unique_market_price UNIQUE (id_game, id_platform, ll_price_type, ts_collected_at)
 );
 
 CREATE TABLE assoc_users_games_collections (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    ll_user_id UUID NOT NULL,
-    ll_game_id UUID NOT NULL,
-    ll_platform_id UUID NOT NULL,
+    id_user_game_collection UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_user UUID NOT NULL,
+    id_game UUID NOT NULL,
+    id_platform UUID NOT NULL,
     ll_notes TEXT,
     nb_price_paid NUMERIC(10,2) CHECK (nb_price_paid >= 0),
     ts_acquired_at TIMESTAMP,
@@ -162,26 +165,26 @@ CREATE TABLE assoc_users_games_collections (
     flag_has_box BOOLEAN DEFAULT FALSE,
     flag_has_notice BOOLEAN DEFAULT FALSE,
     -- États de condition pour chaque élément (référence vers ref_condition_states)
-    ll_cart_condition_id UUID,
-    ll_box_condition_id UUID,
-    ll_notice_condition_id UUID,
+    id_cart_condition UUID,
+    id_box_condition UUID,
+    id_notice_condition UUID,
     ts_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     ts_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     flag_active BOOLEAN DEFAULT TRUE,
-    FOREIGN KEY (ll_user_id) REFERENCES ref_users(id) ON DELETE CASCADE,
-    FOREIGN KEY (ll_game_id) REFERENCES ref_games(id) ON DELETE CASCADE,
-    FOREIGN KEY (ll_platform_id) REFERENCES ref_platforms(id) ON DELETE CASCADE,
-    FOREIGN KEY (ll_cart_condition_id) REFERENCES ref_condition_states(id),
-    FOREIGN KEY (ll_box_condition_id) REFERENCES ref_condition_states(id),
-    FOREIGN KEY (ll_notice_condition_id) REFERENCES ref_condition_states(id)
+    FOREIGN KEY (id_user) REFERENCES ref_users(id_user) ON DELETE CASCADE,
+    FOREIGN KEY (id_game) REFERENCES ref_games(id_game) ON DELETE CASCADE,
+    FOREIGN KEY (id_platform) REFERENCES ref_platforms(id_platform) ON DELETE CASCADE,
+    FOREIGN KEY (id_cart_condition) REFERENCES ref_condition_states(id_condition_state),
+    FOREIGN KEY (id_box_condition) REFERENCES ref_condition_states(id_condition_state),
+    FOREIGN KEY (id_notice_condition) REFERENCES ref_condition_states(id_condition_state)
 );
 
 CREATE TABLE assoc_users_platforms (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    ll_user_id UUID NOT NULL,
-    ll_platform_id UUID NOT NULL,
+    id_user_platform UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_user UUID NOT NULL,
+    id_platform UUID NOT NULL,
     nb_units INTEGER NOT NULL DEFAULT 1 CHECK (nb_units > 0),
-    ll_condition_id UUID,
+    id_condition_state UUID,
     ll_purchase_source VARCHAR(120),
     nb_price_paid NUMERIC(10,2) CHECK (nb_price_paid >= 0),
     ts_acquired_at TIMESTAMP,
@@ -189,17 +192,17 @@ CREATE TABLE assoc_users_platforms (
     ts_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     ts_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     flag_active BOOLEAN DEFAULT TRUE,
-    FOREIGN KEY (ll_user_id) REFERENCES ref_users(id) ON DELETE CASCADE,
-    FOREIGN KEY (ll_platform_id) REFERENCES ref_platforms(id) ON DELETE CASCADE,
-    FOREIGN KEY (ll_condition_id) REFERENCES ref_condition_states(id),
-    CONSTRAINT unique_user_platform UNIQUE (ll_user_id, ll_platform_id, ts_acquired_at, ll_condition_id)
+    FOREIGN KEY (id_user) REFERENCES ref_users(id_user) ON DELETE CASCADE,
+    FOREIGN KEY (id_platform) REFERENCES ref_platforms(id_platform) ON DELETE CASCADE,
+    FOREIGN KEY (id_condition_state) REFERENCES ref_condition_states(id_condition_state),
+    CONSTRAINT unique_user_platform UNIQUE (id_user, id_platform, ts_acquired_at, id_condition_state)
 );
 
 CREATE TABLE assoc_users_games_wishlists (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    ll_user_id UUID NOT NULL,
-    ll_game_id UUID NOT NULL,
-    ll_platform_id UUID NOT NULL,
+    id_user_game_wishlist UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id_user UUID NOT NULL,
+    id_game UUID NOT NULL,
+    id_platform UUID NOT NULL,
     nb_price_target NUMERIC(10,2) CHECK (nb_price_target >= 0),
     ll_priority VARCHAR(30) DEFAULT 'medium',
     ll_notes TEXT,
@@ -208,13 +211,13 @@ CREATE TABLE assoc_users_games_wishlists (
     ts_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     ts_updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     flag_active BOOLEAN DEFAULT TRUE,
-    FOREIGN KEY (ll_user_id) REFERENCES ref_users(id) ON DELETE CASCADE,
-    FOREIGN KEY (ll_game_id) REFERENCES ref_games(id) ON DELETE CASCADE,
-    FOREIGN KEY (ll_platform_id) REFERENCES ref_platforms(id) ON DELETE CASCADE,
+    FOREIGN KEY (id_user) REFERENCES ref_users(id_user) ON DELETE CASCADE,
+    FOREIGN KEY (id_game) REFERENCES ref_games(id_game) ON DELETE CASCADE,
+    FOREIGN KEY (id_platform) REFERENCES ref_platforms(id_platform) ON DELETE CASCADE,
     CONSTRAINT check_wishlist_priority CHECK (
         ll_priority IN ('low', 'medium', 'high', 'urgent')
     ),
-    CONSTRAINT unique_user_wishlist UNIQUE (ll_user_id, ll_game_id, ll_platform_id)
+    CONSTRAINT unique_user_wishlist UNIQUE (id_user, id_game, id_platform)
 );
 
 -- ============================================
@@ -301,6 +304,7 @@ CREATE TRIGGER trg_assoc_users_platforms_updated_at
 -- Index pour ref_platforms
 CREATE INDEX idx_ref_platforms_name ON ref_platforms(ll_name);
 CREATE INDEX idx_ref_platforms_active ON ref_platforms(flag_active);
+CREATE INDEX idx_ref_platforms_region ON ref_platforms(id_region);
 
 -- Index pour ref_regions
 CREATE INDEX idx_ref_regions_code ON ref_regions(ll_code);
@@ -317,11 +321,11 @@ CREATE INDEX idx_ref_games_slug ON ref_games(ll_slug);
 CREATE INDEX idx_ref_games_active ON ref_games(flag_active);
 CREATE INDEX idx_ref_games_publisher ON ref_games(ll_publisher);
 CREATE INDEX idx_ref_games_developer ON ref_games(ll_developer);
+CREATE INDEX idx_ref_games_region ON ref_games(id_region);
 
 -- Index pour assoc_games_platforms
-CREATE INDEX idx_assoc_games_platforms_game ON assoc_games_platforms(ll_game_id);
-CREATE INDEX idx_assoc_games_platforms_platform ON assoc_games_platforms(ll_platform_id);
-CREATE INDEX idx_assoc_games_platforms_region ON assoc_games_platforms(ll_region_code);
+CREATE INDEX idx_assoc_games_platforms_game ON assoc_games_platforms(id_game);
+CREATE INDEX idx_assoc_games_platforms_platform ON assoc_games_platforms(id_platform);
 CREATE INDEX idx_assoc_games_platforms_publisher ON assoc_games_platforms(ll_publisher);
 CREATE INDEX idx_assoc_games_platforms_developer ON assoc_games_platforms(ll_developer);
 
@@ -330,28 +334,28 @@ CREATE INDEX idx_ref_users_email ON ref_users(ll_email);
 CREATE INDEX idx_ref_users_active ON ref_users(flag_active);
 
 -- Index pour ref_tokens
-CREATE INDEX idx_ref_tokens_user ON ref_tokens(ll_user_id);
+CREATE INDEX idx_ref_tokens_user ON ref_tokens(id_user);
 CREATE INDEX idx_ref_tokens_active ON ref_tokens(flag_active);
 
 -- Index pour assoc_users_games_collections
-CREATE INDEX idx_assoc_users_games_collections_user ON assoc_users_games_collections(ll_user_id);
-CREATE INDEX idx_assoc_users_games_collections_platform ON assoc_users_games_collections(ll_platform_id);
-CREATE INDEX idx_assoc_users_games_collections_cart_condition ON assoc_users_games_collections(ll_cart_condition_id);
-CREATE INDEX idx_assoc_users_games_collections_box_condition ON assoc_users_games_collections(ll_box_condition_id);
-CREATE INDEX idx_assoc_users_games_collections_notice_condition ON assoc_users_games_collections(ll_notice_condition_id);
+CREATE INDEX idx_assoc_users_games_collections_user ON assoc_users_games_collections(id_user);
+CREATE INDEX idx_assoc_users_games_collections_platform ON assoc_users_games_collections(id_platform);
+CREATE INDEX idx_assoc_users_games_collections_cart_condition ON assoc_users_games_collections(id_cart_condition);
+CREATE INDEX idx_assoc_users_games_collections_box_condition ON assoc_users_games_collections(id_box_condition);
+CREATE INDEX idx_assoc_users_games_collections_notice_condition ON assoc_users_games_collections(id_notice_condition);
 
 -- Index pour assoc_users_games_wishlists
-CREATE INDEX idx_assoc_users_games_wishlists_user ON assoc_users_games_wishlists(ll_user_id);
-CREATE INDEX idx_assoc_users_games_wishlists_platform ON assoc_users_games_wishlists(ll_platform_id);
+CREATE INDEX idx_assoc_users_games_wishlists_user ON assoc_users_games_wishlists(id_user);
+CREATE INDEX idx_assoc_users_games_wishlists_platform ON assoc_users_games_wishlists(id_platform);
 CREATE INDEX idx_assoc_users_games_wishlists_priority ON assoc_users_games_wishlists(ll_priority);
 
 -- Index pour assoc_users_platforms
-CREATE INDEX idx_assoc_users_platforms_user ON assoc_users_platforms(ll_user_id);
-CREATE INDEX idx_assoc_users_platforms_platform ON assoc_users_platforms(ll_platform_id);
-CREATE INDEX idx_assoc_users_platforms_condition ON assoc_users_platforms(ll_condition_id);
+CREATE INDEX idx_assoc_users_platforms_user ON assoc_users_platforms(id_user);
+CREATE INDEX idx_assoc_users_platforms_platform ON assoc_users_platforms(id_platform);
+CREATE INDEX idx_assoc_users_platforms_condition ON assoc_users_platforms(id_condition_state);
 
 -- Index pour ref_market_prices
-CREATE INDEX idx_ref_market_prices_game_platform ON ref_market_prices(ll_game_id, ll_platform_id);
+CREATE INDEX idx_ref_market_prices_game_platform ON ref_market_prices(id_game, id_platform);
 CREATE INDEX idx_ref_market_prices_price_type ON ref_market_prices(ll_price_type);
 
 -- ============================================
@@ -364,42 +368,126 @@ CREATE INDEX idx_ref_market_prices_price_type ON ref_market_prices(ll_price_type
 -- Note: Ces insertions sont idempotentes grâce à ON CONFLICT
 
 -- États pour les cartouches
-INSERT INTO ref_condition_states (ll_code, ll_label, ll_element_type, ll_description, nb_rating, flag_active)
+INSERT INTO ref_condition_states
+(ll_code, ll_label, ll_element_type, ll_description, nb_rating, flag_active)
 VALUES
-    ('mint', 'Mint', 'cart', 'État neuf, aucune trace d''utilisation', 5, TRUE),
-    ('near_mint', 'Near Mint', 'cart', 'Quasi neuf, très légères traces', 4, TRUE),
-    ('excellent', 'Excellent', 'cart', 'Excellent état, traces minimes', 4, TRUE),
-    ('very_good', 'Very Good', 'cart', 'Très bon état, quelques traces', 3, TRUE),
-    ('good', 'Good', 'cart', 'Bon état, traces d''utilisation visibles', 3, TRUE),
-    ('acceptable', 'Acceptable', 'cart', 'État acceptable, traces importantes', 2, TRUE),
-    ('poor', 'Poor', 'cart', 'Mauvais état, dommages visibles', 1, TRUE),
-    ('non_working', 'Non Working', 'cart', 'Ne fonctionne pas', 0, TRUE)
+    ('mint', 'Mint', 'cart',
+     'État neuf ou scellé, aucun défaut visible',
+     5, TRUE),
+
+    ('near_mint', 'Near Mint', 'cart',
+     'Presque parfait, très légères traces d''utilisation',
+     4, TRUE),
+
+    ('very_good', 'Very Good', 'cart',
+     'Utilisé mais très bien conservé',
+     3, TRUE),
+
+    ('good', 'Good', 'cart',
+     'Usure visible mais cartouche complète et fonctionnelle',
+     2, TRUE),
+
+    ('acceptable', 'Acceptable', 'cart',
+     'Usure importante mais jeu fonctionnel',
+     1, TRUE),
+
+    ('poor', 'Poor', 'cart',
+     'Objet fortement endommagé ou non fonctionnel',
+     0, TRUE)
 ON CONFLICT (ll_code, ll_element_type) DO NOTHING;
 
 -- États pour les boîtes
-INSERT INTO ref_condition_states (ll_code, ll_label, ll_element_type, ll_description, nb_rating, flag_active)
+INSERT INTO ref_condition_states
+(ll_code, ll_label, ll_element_type, ll_description, nb_rating, flag_active)
 VALUES
-    ('mint', 'Mint', 'box', 'Boîte neuve, aucun dommage', 5, TRUE),
-    ('near_mint', 'Near Mint', 'box', 'Quasi neuve, très légers dommages', 4, TRUE),
-    ('excellent', 'Excellent', 'box', 'Excellent état, dommages minimes', 4, TRUE),
-    ('very_good', 'Very Good', 'box', 'Très bon état, quelques dommages', 3, TRUE),
-    ('good', 'Good', 'box', 'Bon état, dommages visibles', 3, TRUE),
-    ('acceptable', 'Acceptable', 'box', 'État acceptable, dommages importants', 2, TRUE),
-    ('poor', 'Poor', 'box', 'Mauvais état, dommages sévères', 1, TRUE),
-    ('missing', 'Missing', 'box', 'Boîte manquante', 0, TRUE)
+    ('mint', 'Mint', 'box',
+     'Boîte neuve ou scellée, aucun défaut visible',
+     5, TRUE),
+
+    ('near_mint', 'Near Mint', 'box',
+     'Presque parfaite, très légères marques',
+     4, TRUE),
+
+    ('very_good', 'Very Good', 'box',
+     'Boîte bien conservée avec usure légère',
+     3, TRUE),
+
+    ('good', 'Good', 'box',
+     'Usure visible mais boîte complète',
+     2, TRUE),
+
+    ('acceptable', 'Acceptable', 'box',
+     'Usure importante, structure encore intacte',
+     1, TRUE),
+
+    ('poor', 'Poor', 'box',
+     'Boîte très endommagée ou inutilisable',
+     0, TRUE)
 ON CONFLICT (ll_code, ll_element_type) DO NOTHING;
+
 
 -- États pour les notices
-INSERT INTO ref_condition_states (ll_code, ll_label, ll_element_type, ll_description, nb_rating, flag_active)
+INSERT INTO ref_condition_states
+(ll_code, ll_label, ll_element_type, ll_description, nb_rating, flag_active)
 VALUES
-    ('mint', 'Mint', 'manual', 'Notice neuve, aucune trace', 5, TRUE),
-    ('near_mint', 'Near Mint', 'manual', 'Quasi neuve, très légères traces', 4, TRUE),
-    ('excellent', 'Excellent', 'manual', 'Excellent état, traces minimes', 4, TRUE),
-    ('very_good', 'Very Good', 'manual', 'Très bon état, quelques traces', 3, TRUE),
-    ('good', 'Good', 'manual', 'Bon état, traces d''utilisation', 3, TRUE),
-    ('acceptable', 'Acceptable', 'manual', 'État acceptable, dommages visibles', 2, TRUE),
-    ('poor', 'Poor', 'manual', 'Mauvais état, dommages importants', 1, TRUE),
-    ('missing', 'Missing', 'manual', 'Notice manquante', 0, TRUE)
+    ('mint', 'Mint', 'manual',
+     'Notice neuve, aucune trace d''utilisation',
+     5, TRUE),
+
+    ('near_mint', 'Near Mint', 'manual',
+     'Notice presque parfaite, très légères traces',
+     4, TRUE),
+
+    ('very_good', 'Very Good', 'manual',
+     'Notice bien conservée avec légère usure',
+     3, TRUE),
+
+    ('good', 'Good', 'manual',
+     'Notice complète avec usure visible',
+     2, TRUE),
+
+    ('acceptable', 'Acceptable', 'manual',
+     'Notice très usée mais lisible',
+     1, TRUE),
+
+    ('poor', 'Poor', 'manual',
+     'Notice fortement endommagée ou inutilisable',
+     0, TRUE)
 ON CONFLICT (ll_code, ll_element_type) DO NOTHING;
 
+-- États pour les consoles
+INSERT INTO ref_condition_states
+(ll_code, ll_label, ll_element_type, ll_description, nb_rating, flag_active)
+VALUES
+    ('mint', 'Mint', 'console',
+     'Console neuve ou scellée, aucun défaut visible, tous les accessoires présents',
+     5, TRUE),
+
+    ('near_mint', 'Near Mint', 'console',
+     'Console presque parfaite, très légères traces d''utilisation',
+     4, TRUE),
+
+    ('very_good', 'Very Good', 'console',
+     'Console bien conservée avec usure légère, fonctionne parfaitement',
+     3, TRUE),
+
+    ('good', 'Good', 'console',
+     'Usure visible mais console complète et fonctionnelle',
+     2, TRUE),
+
+    ('acceptable', 'Acceptable', 'console',
+     'Usure importante mais console encore fonctionnelle, certains défauts cosmétiques',
+     1, TRUE),
+
+    ('poor', 'Poor', 'console',
+     'Console fortement endommagée ou non fonctionnelle',
+     0, TRUE)
+ON CONFLICT (ll_code, ll_element_type) DO NOTHING;
+
+INSERT INTO ref_regions (ll_code, ll_label, flag_active)
+VALUES
+    ('JP', 'Japan', TRUE),
+    ('US', 'North America', TRUE),
+    ('EU', 'Europe', TRUE)
+ON CONFLICT (ll_code) DO NOTHING;
 

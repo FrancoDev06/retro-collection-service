@@ -10,8 +10,8 @@ export interface UserLoginRequest {
 }
 
 export interface UserInfoResponse {
-	id: string;
-	ll_username: string;
-	ll_email: string;
-	ll_password_hash: string;
+	userId: string;
+	username: string;
+	email: string;
+	passwordHash: string;
 }

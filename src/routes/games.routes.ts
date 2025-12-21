@@ -2,7 +2,7 @@ import ResponsesUtil from "@utils/responses.util";
 import { Router } from "express";
 import GameService from "@services/games.service";
 import { Request, Response, NextFunction } from "express";
-import { Game, Games, Conditions } from "@utils/interfaces/games.interface";
+import { Game, Games, Conditions, GamePrices } from "@utils/interfaces/games.interface";
 import { Prices } from "@utils/interfaces/prices.interface";
 import { authMiddleware } from "@middlewares/auth.middleware";
 
@@ -58,24 +58,51 @@ router.get('/count', authMiddleware, async (req: Request, res: Response, next: N
 });
 
 /**
- * ROUTE API : Récupère la liste des jeux par plateforme
+ * ROUTE API : Récupère un jeu par son ID et sa plateforme
  * 
- * @see GameService.getGamesByPlatform() - Fonction service appelée
- * @see getGamesByPlatform (games.queries.ts) - Requête SQL utilisée
+ * @see GameService.getGame() - Fonction service appelée
+ * @see getGame (games.queries.ts) - Requête SQL utilisée
  * 
- * @route GET /games/platform/:id
+ * @route GET /games/platform/:platformId/game/:gameId
  * @access Private (nécessite authentification)
  */
-router.get('/platform/:id', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+router.get('/platform/:platformId/game/:gameId', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
-		const { id } = req.params;
-		const result: Games[] = await GameService.getGamesByPlatform (id);
+		const { platformId, gameId } = req.params;
+		console.log('platformId:', platformId);
+		console.log('gameId:', gameId);
+		if (!platformId || !gameId) {
+			return ResponsesUtil.invalidParameters(res, { error: 'MISSING_PARAMETERS' });
+		}
+		const result : Game = await GameService.getGame(platformId, gameId);
 		if (!result) {
-			return ResponsesUtil.notFound(res, { error: 'GAMES_BY_PLATFORM_ID_NOT_FOUND' });
+			return ResponsesUtil.notFound(res, { error: 'GAME_NOT_FOUND' });
 		}
 		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
 	} catch (error) {
-		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_GAMES_PLATFORMS_LIMITED_FAILED', error: error });
+		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_GAME_FAILED', error: error });
+	}
+});
+
+/**
+ * ROUTE API : Récupère le nombre total de jeux par plateforme
+ * 
+ * @see GameService.getGamesCountByPlatformId() - Fonction service appelée
+ * @see getGamesCountByPlatformId (games.queries.ts) - Requête SQL utilisée
+ * 
+ * @route GET /games/platform/:id/limited/count
+ * @access Private (nécessite authentification)
+ */
+router.get('/platform/:id/limited/count', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+	try {
+		const { id } = req.params;
+		const result: number = await GameService.getGamesCountByPlatformId(id);
+		if (!result) {
+			return ResponsesUtil.notFound(res, { error: 'GAMES_COUNT_BY_PLATFORM_ID_NOT_FOUND' });
+		}
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
+	} catch (error) {
+		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_GAMES_COUNT_BY_PLATFORM_ID_FAILED', error: error });
 	}
 });
 
@@ -103,24 +130,24 @@ router.post('/platform/:id/limited', authMiddleware, async (req: Request, res: R
 });
 
 /**
- * ROUTE API : Récupère le nombre total de jeux par plateforme
+ * ROUTE API : Récupère la liste des jeux par plateforme
  * 
- * @see GameService.getGamesCountByPlatformId() - Fonction service appelée
- * @see getGamesCountByPlatformId (games.queries.ts) - Requête SQL utilisée
+ * @see GameService.getGamesByPlatform() - Fonction service appelée
+ * @see getGamesByPlatform (games.queries.ts) - Requête SQL utilisée
  * 
- * @route GET /games/platform/:id/limited/count
+ * @route GET /games/platform/:id
  * @access Private (nécessite authentification)
  */
-router.get('/platform/:id/limited/count', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+router.get('/platform/:id', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 		const { id } = req.params;
-		const result: number = await GameService.getGamesCountByPlatformId(id);
+		const result: Games[] = await GameService.getGamesByPlatform (id);
 		if (!result) {
-			return ResponsesUtil.notFound(res, { error: 'GAMES_COUNT_BY_PLATFORM_ID_NOT_FOUND' });
+			return ResponsesUtil.notFound(res, { error: 'GAMES_BY_PLATFORM_ID_NOT_FOUND' });
 		}
 		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
 	} catch (error) {
-		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_GAMES_COUNT_BY_PLATFORM_ID_FAILED', error: error });
+		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_GAMES_PLATFORMS_LIMITED_FAILED', error: error });
 	}
 });
 
@@ -176,35 +203,13 @@ router.post('/search/count', authMiddleware, async (req: Request, res: Response,
 router.post('/prices', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 		const { gameId, platformId } = req.body;
-		const result: Prices[] = await GameService.getGamePrices(gameId, platformId);
+		const result: GamePrices[] = await GameService.getGamePrices(gameId, platformId);
 		if (!result) {
 			return ResponsesUtil.notFound(res, { error: 'PRICES_NOT_FOUND' });
 		}
 		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
 	} catch (error) {
 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_PRICES_FAILED', error: error });
-	}
-});
-
-/**
- * ROUTE API : Récupère un jeu par son ID
- * 
- * @see GameService.getGame() - Fonction service appelée
- * @see getGame (games.queries.ts) - Requête SQL utilisée
- * 
- * @route GET /games/:id
- * @access Private (nécessite authentification)
- */
-router.get('/:id', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-	try {
-		const { id } = req.params;
-		const result : Game = await GameService.getGame(id);
-		if (!result) {
-			return ResponsesUtil.notFound(res, { error: 'GAME_NOT_FOUND' });
-		}
-		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
-	} catch (error) {
-		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_GAME_FAILED', error: error });
 	}
 });
 

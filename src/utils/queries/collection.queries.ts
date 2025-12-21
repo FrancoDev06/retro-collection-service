@@ -1,58 +1,4 @@
 /**
- * REQUÊTE SQL : Récupère tous les états de condition disponibles pour les boîtes de jeux
- * 
- * @see CollectionService.getConditionsBoxed() - Fonction service qui utilise cette requête
- * @see GET /collection/conditions/box - Route API qui expose cette fonctionnalité
- * 
- * @returns Tous les enregistrements actifs de la table ref_condition_states où le type d'élément est 'box'
- */
-export const getConditionsBoxed = `
-SELECT
-    *
-FROM
-    ref_condition_states
-WHERE
-    ll_element_type = 'box'
-    AND flag_active = TRUE;
-`;
-
-/**
- * REQUÊTE SQL : Récupère tous les états de condition disponibles pour les cartouches de jeux
- * 
- * @see CollectionService.getConditionsCart() - Fonction service qui utilise cette requête
- * @see GET /collection/conditions/cart - Route API qui expose cette fonctionnalité
- * 
- * @returns Tous les enregistrements actifs de la table ref_condition_states où le type d'élément est 'cart'
- */
-export const getConditionsCart = `
-SELECT
-    *
-FROM
-    ref_condition_states
-WHERE
-    ll_element_type = 'cart'
-    AND flag_active = TRUE;
-`;
-
-/**
- * REQUÊTE SQL : Récupère tous les états de condition disponibles pour les notices/manuels de jeux
- * 
- * @see CollectionService.getConditionsManual() - Fonction service qui utilise cette requête
- * @see GET /collection/conditions/manual - Route API qui expose cette fonctionnalité
- * 
- * @returns Tous les enregistrements actifs de la table ref_condition_states où le type d'élément est 'manual'
- */
-export const getConditionsManual = `
-SELECT
-	*
-FROM
-	ref_condition_states
-WHERE
-	ll_element_type = 'manual'
-	AND flag_active = TRUE;
-`;
-
-/**
  * REQUÊTE SQL : Ajoute un jeu à la collection d'un utilisateur
  * 
  * @see CollectionService.addGameToCollection() - Fonction service qui utilise cette requête
@@ -75,18 +21,18 @@ WHERE
 export const addGameToCollection = `
 INSERT INTO
     assoc_users_games_collections (
-        ll_user_id,
-        ll_game_id,
-        ll_platform_id,
+        id_user,
+        id_game,
+        id_platform,
         ll_notes,
         nb_price_paid,
         ts_acquired_at,
         flag_has_cart,
         flag_has_box,
         flag_has_notice,
-        ll_cart_condition_id,
-        ll_box_condition_id,
-        ll_notice_condition_id
+        id_cart_condition,
+        id_box_condition,
+        id_notice_condition
     )
 VALUES
     (
@@ -104,7 +50,7 @@ VALUES
         $12
     )
 RETURNING
-    id;
+    id_user_game_collection AS id;
 `;
 
 /**
@@ -124,12 +70,12 @@ UPDATE
 SET
     flag_active = FALSE
 WHERE
-    ll_user_id = $1
-    AND ll_game_id = $2
-    AND ll_platform_id = $3
+    id_user = $1
+    AND id_game = $2
+    AND id_platform = $3
     AND flag_active = TRUE
 RETURNING
-    id;
+    id_user_game_collection AS id;
 `;
 
 /**
@@ -143,20 +89,20 @@ RETURNING
  */
 export const getPlatformList = `
 SELECT
-    rp.id AS platform_id,
-    rp.ll_name AS platform_name,
-    COUNT(augc.id) AS games_count,
-    COALESCE(SUM(augc.nb_price_paid), 0) AS total_value
+    rp.id_platform AS "platformId",
+    rp.ll_name AS "platformName",
+    COUNT(augc.id_user_game_collection) AS "gamesCount",
+    COALESCE(SUM(augc.nb_price_paid), 0) AS "totalValue"
 FROM
     assoc_users_games_collections AS augc
 INNER JOIN ref_platforms AS rp
-    ON augc.ll_platform_id = rp.id
+    ON augc.id_platform = rp.id_platform
 WHERE
     augc.flag_active = TRUE
-    AND augc.ll_user_id = $1
+    AND augc.id_user = $1
     AND rp.flag_active = TRUE
 GROUP BY
-    rp.id,
+    rp.id_platform,
     rp.ll_name
 ORDER BY
     rp.ll_name ASC;
@@ -174,33 +120,48 @@ ORDER BY
  */
 export const getGamesListByPlatformId = `
     SELECT
-        rg.id,
-        rg.ll_title as title,
-        rg.ll_cover_image as cover_image,
-        rg.ll_cover_image_large as cover_image_large,
-        rg.ll_game_url as game_url,
-        rp.ll_name as platform_name,
-        rg.ll_product_id as product_id,
-        rg.ll_publisher as publisher,
-        rg.ll_developer as developer,
-        rg.ll_description as description,
-        augc.ll_notes as notes,
-        augc.nb_price_paid as price_paid,
-        augc.ts_acquired_at as acquired_at,
-        augc.flag_has_box as has_box,
-        augc.flag_has_notice as has_notice,
-        augc.ll_cart_condition_id as cart_condition_id,
-        augc.ll_box_condition_id as box_condition_id,
-        augc.ll_notice_condition_id as notice_condition_id,
-        augc.flag_has_cart as has_cart
+        rg.id_game AS "gameId",
+        rg.ll_title AS title,
+        rg.ll_cover_image AS "coverImage",
+        rg.ll_cover_image_large AS "coverImageLarge",
+        rg.ll_game_url AS "gameUrl",
+        rp.ll_name AS "platformName",
+        rg.ll_product_id AS "productId",
+        rg.ll_publisher AS publisher,
+        rg.ll_developer AS developer,
+        rg.ll_description AS description,
+        augc.ll_notes AS notes,
+        augc.nb_price_paid AS "pricePaid",
+        augc.ts_acquired_at AS "acquiredAt",
+        augc.flag_has_box AS "hasBox",
+        augc.flag_has_notice AS "hasNotice",
+        augc.id_cart_condition AS "cartConditionId",
+        rcs_cart.ll_code AS "cartConditionCode",
+        rcs_cart.ll_label AS "cartConditionLabel",
+        rcs_cart.ll_description AS "cartConditionDescription",
+        rcs_cart.nb_rating AS "cartConditionRating",
+        augc.id_box_condition AS "boxConditionId",
+        rcs_box.ll_code AS "boxConditionCode",
+        rcs_box.ll_label AS "boxConditionLabel",
+        rcs_box.ll_description AS "boxConditionDescription",
+        rcs_box.nb_rating AS "boxConditionRating",
+        augc.id_notice_condition AS "noticeConditionId",
+        rcs_notice.ll_code AS "noticeConditionCode",
+        rcs_notice.ll_label AS "noticeConditionLabel",
+        rcs_notice.ll_description AS "noticeConditionDescription",
+        rcs_notice.nb_rating AS "noticeConditionRating",
+        augc.flag_has_cart AS "hasCart"
     FROM
         assoc_users_games_collections AS augc
-    INNER JOIN ref_platforms AS rp ON rp.id = augc.ll_platform_id
-    INNER JOIN ref_games AS rg ON rg.id = augc.ll_game_id
+    INNER JOIN ref_platforms AS rp ON rp.id_platform = augc.id_platform
+    INNER JOIN ref_games AS rg ON rg.id_game = augc.id_game
+    LEFT JOIN ref_condition_states AS rcs_cart ON rcs_cart.id_condition_state = augc.id_cart_condition
+    LEFT JOIN ref_condition_states AS rcs_box ON rcs_box.id_condition_state = augc.id_box_condition
+    LEFT JOIN ref_condition_states AS rcs_notice ON rcs_notice.id_condition_state = augc.id_notice_condition
     WHERE
         augc.flag_active = TRUE
-        AND augc.ll_user_id = $1
-        AND augc.ll_platform_id = $2
+        AND augc.id_user = $1
+        AND augc.id_platform = $2
     ORDER BY
         rg.ll_title ASC;
 `;
@@ -211,9 +172,9 @@ export const getGamesListByPlatformId = `
  * @see CollectionService.checkGameExistsInCollection() - Fonction service qui utilise cette requête
  * @see POST /collection/new - Route API qui utilise cette vérification avant d'ajouter un jeu
  * 
- * @param $1 ll_user_id - ID de l'utilisateur
- * @param $2 ll_game_id - ID du jeu
- * @param $3 ll_platform_id - ID de la plateforme
+ * @param $1 id_user - ID de l'utilisateur
+ * @param $2 id_game - ID du jeu
+ * @param $3 id_platform - ID de la plateforme
  * @returns Un booléen indiquant si le jeu existe (true) ou non (false) dans la collection active de l'utilisateur
  */
 export const checkGameExistsInCollection = `
@@ -225,8 +186,59 @@ SELECT
             assoc_users_games_collections
         WHERE
             flag_active = TRUE
-            AND ll_user_id = $1
-            AND ll_game_id = $2
-            AND ll_platform_id = $3
+            AND id_user = $1
+            AND id_game = $2
+            AND id_platform = $3
         ) AS exists;
+`;
+
+/**
+ * REQUÊTE SQL : Récupère la liste des plateformes dans la collection d'un utilisateur
+ * 
+ * @see CollectionService.getCollectionPlatformList() - Fonction service qui utilise cette requête
+ * @see GET /collection/:userId/platforms/list - Route API qui expose cette fonctionnalité
+ * 
+ * @param $1 ll_user_id - ID de l'utilisateur
+ * @returns La liste des plateformes dans la collection active de l'utilisateur
+ */
+export const getCollectionPlatformList = `
+    SELECT
+        augp.id_user AS "userId",
+        augp.id_platform AS "platformId",
+        rp.ll_name AS "platformName",
+        augp.nb_units AS "units",
+        augp.id_condition_state AS "conditionStateId",
+        augp.ll_purchase_source AS "purchaseSource",
+        augp.nb_price_paid AS "pricePaid",
+        augp.ts_acquired_at AS "acquiredAt",
+        augp.ll_notes AS "notes"
+    FROM
+        assoc_users_platforms AS augp
+    INNER JOIN ref_platforms AS rp ON rp.id_platform = augp.id_platform
+    WHERE
+        augp.flag_active = TRUE
+        AND augp.id_user = $1
+    ORDER BY
+        augp.ts_acquired_at ASC;
+`;
+
+export const getCollectionPlatformListOwned = `
+    SELECT
+        augp.id_user AS "userId",
+        augp.id_platform AS "platformId",
+        rp.ll_name AS "platformName",
+        augp.nb_units AS "units",
+        augp.id_condition_state AS "conditionStateId",
+        augp.ll_purchase_source AS "purchaseSource",
+        augp.nb_price_paid AS "pricePaid",
+        augp.ts_acquired_at AS "acquiredAt",
+        augp.ll_notes AS "notes"
+    FROM
+        assoc_users_platforms AS augp    
+    INNER JOIN ref_platforms AS rp ON rp.id_platform = augp.id_platform
+    WHERE
+        augp.flag_active = TRUE
+        AND augp.id_user = $1
+    ORDER BY
+        rp.ll_name ASC;
 `;

@@ -1,14 +1,13 @@
 import DatabaseUtil from "@utils/database";
-import { Conditions, Game, Games } from "@utils/interfaces/games.interface";
+import { Conditions, Game, GamePrices, Games } from "@utils/interfaces/games.interface";
 import { getGamesLimited, getGame, getGamesCount, getGamesLimitedByPlatformId, getGamesCountByPlatformId, getGamesSearch, getGamesSearchCount, getGamePrices, getGamesByPlatform } from "@utils/queries/games.queries";
-import { Prices } from "@utils/interfaces/prices.interface";
 import { getCartConditions, getBoxConditions, getNoticeConditions } from "@utils/queries/games.queries";
 
 export default class GameService {
 
 
-	static async getGame(id: string): Promise<Game> {
-		const result = await DatabaseUtil.query(DatabaseUtil.pool, getGame, [id])
+	static async getGame(platformId: string, gameId: string): Promise<Game> {
+		const result = await DatabaseUtil.query(DatabaseUtil.pool, getGame, [platformId, gameId])
 			.then((res) => res.rows[0])
 			.catch((err) => Promise.reject({ id: 'GameService.getGame.getGame', error: err }));
 		return result as Game;
@@ -56,11 +55,11 @@ export default class GameService {
 		return result;
 	}
 
-	static async getGamePrices(gameId: string, platformId: string): Promise<Prices[]> {
+	static async getGamePrices(gameId: string, platformId: string): Promise<GamePrices[]> {
 		const result = await DatabaseUtil.query(DatabaseUtil.pool, getGamePrices, [gameId, platformId])
 			.then((res) => res.rows)
 			.catch((err) => Promise.reject({ id: 'GameService.getGamePrices.getGamePrices', error: err }));
-		return result as Prices[];
+		return result as GamePrices[];
 	}
 
 	static async getGamesByPlatform(platformId: string): Promise<Games[]> {

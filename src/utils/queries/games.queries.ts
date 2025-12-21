@@ -1,80 +1,81 @@
 export const getGame = `
-SELECT DISTINCT ON (rg.id)
-	rg.id,
-	rg.ll_slug as slug,
-	rg.ll_title as title,
-	rg.ll_cover_image as cover_image,
-	rg.ll_cover_image_large as cover_image_large,
-	rg.ll_game_url as game_url,
-	rg.ll_product_id as product_id,
-	rg.ll_publisher as publisher,
-	rg.ll_developer as developer,
-	rg.ll_description as description,
-	rg.ts_released as released,
+SELECT DISTINCT ON (rg.id_game)
+	rg.id_game AS "gameId",
+	rg.ll_slug AS slug,
+	rg.ll_title AS title,
+	rg.ll_cover_image AS "coverImage",
+	rg.ll_cover_image_large AS "coverImageLarge",
+	rg.ll_game_url AS "gameUrl",
+	rg.ll_product_id AS "productId",
+	rg.ll_publisher AS publisher,
+	rg.ll_developer AS developer,
+	rg.ll_description AS description,
+	rg.ts_released AS released,
 	(
 		SELECT STRING_AGG(DISTINCT rge.ll_name, ', ' ORDER BY rge.ll_name)
 		FROM assoc_games_genres AS agg
-		INNER JOIN ref_genres AS rge ON rge.id = agg.ll_genre_id
-		WHERE agg.ll_game_id = rg.id
+		INNER JOIN ref_genres AS rge ON rge.id_genre = agg.id_genre
+		WHERE agg.id_game = rg.id_game
 			AND agg.flag_active = TRUE
 			AND rge.flag_active = TRUE
-	) as genre_name,
-	rp.id as platform_id,
-	rp.ll_name as platform_name
+	) AS "genreName",
+	rp.id_platform AS "platformId",
+	rp.ll_name AS "platformName"
 FROM
     ref_games AS rg
-INNER JOIN assoc_games_platforms AS agp ON rg.id = agp.ll_game_id
-INNER JOIN ref_platforms as rp ON agp.ll_platform_id = rp.id
+INNER JOIN assoc_games_platforms AS agp ON rg.id_game = agp.id_game
+INNER JOIN ref_platforms as rp ON agp.id_platform = rp.id_platform
 WHERE rg.flag_active = TRUE
 	AND rp.flag_active = TRUE
 	AND agp.flag_active = TRUE
-	AND rg.id = $1
-ORDER BY rg.id, rg.ll_title ASC, rp.ll_name ASC;
+	AND agp.id_platform = $1
+	AND rg.id_game = $2
+ORDER BY rg.id_game, rg.ll_title ASC;
 `;
 
 export const getGamesLimited = `
 WITH user_id_param AS (
 	SELECT $3::uuid AS user_uuid
 )
-SELECT DISTINCT ON (rg.id)
-	rg.id,
-	rg.ll_title as title,
-	rg.ll_cover_image as cover_image,
-	rg.ll_cover_image_large as cover_image_large,
-	rg.ts_released as released,
+SELECT DISTINCT ON (rg.id_game)
+	rg.id_game AS "gameId",
+	rg.ll_title AS title,
+	rg.ll_cover_image AS "coverImage",
+	rg.ll_cover_image_large AS "coverImageLarge",
+	rg.ts_released AS released,
 	(
 		SELECT STRING_AGG(DISTINCT rge.ll_name, ', ' ORDER BY rge.ll_name)
 		FROM assoc_games_genres AS agg
-		INNER JOIN ref_genres AS rge ON rge.id = agg.ll_genre_id
-		WHERE agg.ll_game_id = rg.id
+		INNER JOIN ref_genres AS rge ON rge.id_genre = agg.id_genre
+		WHERE agg.id_game = rg.id_game
 			AND agg.flag_active = TRUE
 			AND rge.flag_active = TRUE
-	) as genre_name,
-	rp.id as platform_id,
-	rp.ll_name as platform_name,
+	) AS "genreName",
+	rp.id_platform AS "platformId",
+	rp.ll_name AS "platformName",
 	CASE 
-		WHEN up.user_uuid IS NOT NULL THEN (augc.id IS NOT NULL)
+		WHEN up.user_uuid IS NOT NULL THEN (augc.id_user_game_collection IS NOT NULL)
 		ELSE FALSE
-	END as in_collection,
+	END AS inCollection,
 	CASE 
-		WHEN up.user_uuid IS NOT NULL THEN (augw.id IS NOT NULL)
+		WHEN up.user_uuid IS NOT NULL THEN (augw.id_user_game_wishlist IS NOT NULL)
 		ELSE FALSE
-	END as in_wishlist
+	END AS "inWishlist"
 FROM
     ref_games AS rg
-INNER JOIN assoc_games_platforms AS agp ON rg.id = agp.ll_game_id
-INNER JOIN ref_platforms as rp ON agp.ll_platform_id = rp.id
+INNER JOIN assoc_games_platforms AS agp ON rg.id_game = agp.id_game
+INNER JOIN ref_platforms as rp ON agp.id_platform = rp.id_platform
 CROSS JOIN user_id_param up
-LEFT JOIN assoc_users_games_collections AS augc ON augc.ll_game_id = rg.id 
-	AND augc.ll_user_id = up.user_uuid
+LEFT JOIN assoc_users_games_collections AS augc ON augc.id_game = rg.id_game 
+	AND augc.id_user = up.user_uuid
 	AND augc.flag_active = TRUE
-LEFT JOIN assoc_users_games_wishlists AS augw ON augw.ll_game_id = rg.id 
-	AND augw.ll_user_id = up.user_uuid
+LEFT JOIN assoc_users_games_wishlists AS augw ON augw.id_game = rg.id_game 
+	AND augw.id_user = up.user_uuid
 	AND augw.flag_active = TRUE
 WHERE rg.flag_active = TRUE
 	AND rp.flag_active = TRUE
 	AND agp.flag_active = TRUE
-ORDER BY rg.id, rg.ll_title ASC, rp.ll_name ASC
+ORDER BY rg.id_game, rg.ll_title ASC, rp.ll_name ASC
 LIMIT $1 OFFSET $2;
 `;
 
@@ -91,77 +92,77 @@ WHERE
 
 
 export const getGamesLimitedByPlatformId = `
-SELECT DISTINCT ON (rg.id)
-	rg.id,
-	rg.ll_title as title,
-	rg.ll_cover_image as cover_image,
-	rg.ll_cover_image_large as cover_image_large,
-	rg.ts_released as released,
+SELECT DISTINCT ON (rg.id_game)
+	rg.id_game AS "gameId",
+	rg.ll_title AS title,
+	rg.ll_cover_image AS "coverImage",
+	rg.ll_cover_image_large AS "coverImageLarge",
+	rg.ts_released AS released,
 	(
 		SELECT STRING_AGG(DISTINCT rge.ll_name, ', ' ORDER BY rge.ll_name)
 		FROM assoc_games_genres AS agg
-		INNER JOIN ref_genres AS rge ON rge.id = agg.ll_genre_id
-		WHERE agg.ll_game_id = rg.id
+		INNER JOIN ref_genres AS rge ON rge.id_genre = agg.id_genre
+		WHERE agg.id_game = rg.id_game
 			AND agg.flag_active = TRUE
 			AND rge.flag_active = TRUE
-	) as genre_name,
-	rp.id as platform_id,
-	rp.ll_name as platform_name
+	) AS "genreName",
+	rp.id_platform AS "platformId",
+	rp.ll_name AS "platformName"
 FROM
 	ref_games AS rg
-INNER JOIN assoc_games_platforms AS agp ON agp.ll_game_id = rg.id
-INNER JOIN ref_platforms AS rp ON agp.ll_platform_id = rp.id
-WHERE rp.id = $1
+INNER JOIN assoc_games_platforms AS agp ON agp.id_game = rg.id_game
+INNER JOIN ref_platforms AS rp ON agp.id_platform = rp.id_platform
+WHERE rp.id_platform = $1
 	AND rg.flag_active = TRUE
 	AND agp.flag_active = TRUE
 	AND rp.flag_active = TRUE
-ORDER BY rg.id, rg.ll_title ASC
+ORDER BY rg.id_game, rg.ll_title ASC
 LIMIT $2 OFFSET $3
 `;
 
 
 export const getGamesCountByPlatformId = `
-SELECT COUNT(*) AS count FROM assoc_games_platforms WHERE ll_platform_id = $1 AND flag_active = TRUE;
+SELECT COUNT(*) AS count FROM assoc_games_platforms WHERE id_platform = $1 AND flag_active = TRUE;
 `;
 
 export const getGamesSearch = `
 WITH user_id_param AS (
 	SELECT $4::uuid AS user_uuid
 )
-SELECT DISTINCT ON (rg.id)
-	rg.id,
-	rg.ll_title as title,
-	rg.ll_cover_image as cover_image,
-	rg.ll_cover_image_large as cover_image_large,
-	rg.ts_released as released,
+SELECT DISTINCT ON (rg.id_game)
+	rg.id_game AS "gameId",
+	rg.ll_title AS title,
+	rg.ll_cover_image AS "coverImage",
+	rg.ll_cover_image_large AS "coverImageLarge",
+	rg.ts_released AS released,
 	(
 		SELECT STRING_AGG(DISTINCT rge.ll_name, ', ' ORDER BY rge.ll_name)
 		FROM assoc_games_genres AS agg
-		INNER JOIN ref_genres AS rge ON rge.id = agg.ll_genre_id
-		WHERE agg.ll_game_id = rg.id
+		INNER JOIN ref_genres AS rge ON rge.id_genre = agg.id_genre
+		WHERE agg.id_game = rg.id_game
 			AND agg.flag_active = TRUE
 			AND rge.flag_active = TRUE
-	) as genre_name,
-	rp.id as platform_id,
-	rp.ll_name as platform_name,
+	) AS "genreName",
+	rp.id_platform AS "platformId",
+	rp.ll_name AS "platformName",
 	CASE 
-		WHEN up.user_uuid IS NOT NULL THEN (augc.id IS NOT NULL)
+		WHEN up.user_uuid IS NOT NULL THEN (augc.id_user_game_collection IS NOT NULL)
 		ELSE FALSE
-	END as in_collection,
+	END AS inCollection,
 	CASE 
-		WHEN up.user_uuid IS NOT NULL THEN (augw.id IS NOT NULL)
+		WHEN up.user_uuid IS NOT NULL THEN (augw.id_user_game_wishlist IS NOT NULL)
 		ELSE FALSE
-	END as in_wishlist
+	END AS "inWishlist"
 FROM
     ref_games AS rg
-INNER JOIN assoc_games_platforms AS agp ON agp.ll_game_id = rg.id
-INNER JOIN ref_platforms AS rp ON agp.ll_platform_id = rp.id
+INNER JOIN assoc_games_platforms AS agp ON agp.id_game = rg.id_game
+INNER JOIN ref_platforms AS rp ON agp.id_platform = rp.id_platform
 CROSS JOIN user_id_param up
-LEFT JOIN assoc_users_games_collections AS augc ON augc.ll_game_id = rg.id 
-	AND augc.ll_user_id = up.user_uuid
+LEFT JOIN assoc_users_games_collections AS augc ON augc.id_game = rg.id_game 
+	AND augc.id_user = up.user_uuid
 	AND augc.flag_active = TRUE
-LEFT JOIN assoc_users_games_wishlists AS augw ON augw.ll_game_id = rg.id 
-	AND augw.ll_user_id = up.user_uuid
+LEFT JOIN assoc_users_games_wishlists AS augw ON augw.id_game = rg.id_game 
+	AND augw.id_user = up.user_uuid
 	AND augw.flag_active = TRUE
 WHERE
     rg.ll_title ILIKE '%' || $1 || '%'
@@ -169,7 +170,7 @@ WHERE
     AND agp.flag_active = TRUE
     AND rp.flag_active = TRUE
 ORDER BY
-    rg.id, rg.ll_title ASC, rp.ll_name ASC
+    rg.id_game, rg.ll_title ASC, rp.ll_name ASC
 LIMIT $2 OFFSET $3;
 `;
 
@@ -179,50 +180,50 @@ SELECT COUNT(*) AS count FROM ref_games WHERE ll_title ILIKE '%' || $1 || '%' AN
 
 export const getGamePrices = `
 SELECT
-	rmp.id,
-	rmp.ll_game_id as game_id,
-	rmp.ll_platform_id as platform_id,
-	rmp.ll_price_type as price_type,
-	rmp.nb_price_retail as price_retail,
-	rmp.nb_price_change as price_change,
-	rmp.nb_price_change_percent as price_change_percent,
-	rmp.nb_print_run as print_run,
-	rmp.ts_collected_at as collected_at,
-	rmp.ll_source as source
+	rmp.id_market_price AS "marketPriceId",
+	rmp.id_game AS "gameId",
+	rmp.id_platform AS "platformId",
+	rmp.ll_price_type AS "priceType",
+	rmp.nb_price_retail AS "priceRetail",
+	rmp.nb_price_change AS "priceChange",
+	rmp.nb_price_change_percent AS "priceChangePercent",
+	rmp.nb_print_run AS "printRun",
+	rmp.ts_collected_at AS "collectedAt",
+	rmp.ll_source AS source
 FROM
 	ref_market_prices as rmp
 WHERE
-	rmp.ll_game_id = $1
-	AND rmp.ll_platform_id = $2
+	rmp.id_game = $1
+	AND rmp.id_platform = $2
 	AND rmp.flag_active = TRUE;
 `;
 
 export const getGamesByPlatform = `
 SELECT
-	rg.id,
-	rg.ll_title as title,
-	rp.id as platform_id,
-	rp.ll_name as platform_name
+	rg.id_game AS "gameId",
+	rg.ll_title AS title,
+	rp.id_platform AS "platformId",
+	rp.ll_name AS "platformName"
 FROM
 	ref_games AS rg
-INNER JOIN assoc_games_platforms AS agp ON agp.ll_game_id = rg.id	
-INNER JOIN ref_platforms AS rp ON agp.ll_platform_id = rp.id
-WHERE rp.id = $1
+INNER JOIN assoc_games_platforms AS agp ON agp.id_game = rg.id_game	
+INNER JOIN ref_platforms AS rp ON agp.id_platform = rp.id_platform
+WHERE rp.id_platform = $1
 	AND rg.flag_active = TRUE
 	AND agp.flag_active = TRUE
 	AND rp.flag_active = TRUE
-GROUP BY rg.id, rg.ll_title, rp.id, rp.ll_name
+GROUP BY rg.id_game, rg.ll_title, rp.id_platform, rp.ll_name
 ORDER BY rg.ll_title ASC;
 `;
 
 export const getCartConditions = `
 SELECT
-    rcs.id,
-    rcs.ll_code as code,
-    rcs.ll_label as label,
-    rcs.ll_element_type as element_type,
-    rcs.ll_description as description,
-    rcs.nb_rating as rating
+    rcs.id_condition_state AS "conditionStateId",
+    rcs.ll_code AS code,
+    rcs.ll_label AS label,
+    rcs.ll_element_type AS "elementType",
+    rcs.ll_description AS description,
+    rcs.nb_rating AS rating
 FROM
     ref_condition_states as rcs
 WHERE rcs.ll_element_type = 'cart' AND rcs.flag_active = TRUE;
@@ -230,12 +231,12 @@ WHERE rcs.ll_element_type = 'cart' AND rcs.flag_active = TRUE;
 
 export const getBoxConditions = `
 SELECT
-    rcs.id,
-    rcs.ll_code as code,
-    rcs.ll_label as label,
-    rcs.ll_element_type as element_type,
-    rcs.ll_description as description,
-    rcs.nb_rating as rating
+    rcs.id_condition_state AS "conditionStateId",
+    rcs.ll_code AS code,
+    rcs.ll_label AS label,
+    rcs.ll_element_type AS "elementType",
+    rcs.ll_description AS description,
+    rcs.nb_rating AS rating
 FROM 
 	ref_condition_states as rcs 
 WHERE rcs.ll_element_type = 'box' AND rcs.flag_active = TRUE
@@ -243,12 +244,12 @@ WHERE rcs.ll_element_type = 'box' AND rcs.flag_active = TRUE
 
 export const getNoticeConditions = `
 SELECT
-    rcs.id,
-    rcs.ll_code as code,
-    rcs.ll_label as label,
-    rcs.ll_element_type as element_type,
-    rcs.ll_description as description,
-    rcs.nb_rating as rating
+    rcs.id_condition_state AS "conditionStateId",
+    rcs.ll_code AS code,
+    rcs.ll_label AS label,
+    rcs.ll_element_type AS "elementType",
+    rcs.ll_description AS description,
+    rcs.nb_rating AS rating
 FROM 
 	ref_condition_states as rcs 
 WHERE rcs.ll_element_type = 'manual' AND rcs.flag_active = TRUE

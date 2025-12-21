@@ -1,9 +1,9 @@
 export const addGameToWishlist = `
 INSERT INTO
-    assoc_users_games_wishlists (ll_user_id, ll_game_id, ll_platform_id, ll_notes, nb_price_target, ll_priority, ll_retailer_link)
+    assoc_users_games_wishlists (id_user, id_game, id_platform, ll_notes, nb_price_target, ll_priority, ll_retailer_link)
 VALUES
     ($1, $2, $3, $4, $5, $6, $7)
-RETURNING id;
+RETURNING id_user_game_wishlist AS id;
 `;
 
 export const checkGameExistsInWishlist = `
@@ -15,61 +15,61 @@ SELECT
             assoc_users_games_wishlists
         WHERE
             flag_active = TRUE
-            AND ll_user_id = $1
-            AND ll_game_id = $2
-            AND ll_platform_id = $3
+            AND id_user = $1
+            AND id_game = $2
+            AND id_platform = $3
         ) AS exists;
 `;
 
 export const getGamesFromWishlist = `
 SELECT 
-    augw.id,
-    rg.id as game_id,
-    rg.ll_title as title,
-    rg.ll_cover_image as cover_image,
-    rg.ll_cover_image_large as cover_image_large,
-    rg.ll_game_url as game_url,
-    rp.id as platform_id,
-    rp.ll_name as platform_name,
-    augw.nb_price_target as price_target,
-    augw.ll_priority as priority,
-    augw.ll_notes as notes,
-    augw.ll_retailer_link as retailer_link,
-    augw.ts_added_at as added_at
+    augw.id_user_game_wishlist AS "wishlistId",
+    rg.id_game AS "gameId",
+    rg.ll_title AS title,
+    rg.ll_cover_image AS "coverImage",
+    rg.ll_cover_image_large AS "coverImageLarge",
+    rg.ll_game_url AS "gameUrl",
+    rp.id_platform AS "platformId",
+    rp.ll_name AS platformName,
+    augw.nb_price_target AS "priceTarget",
+    augw.ll_priority AS priority,
+    augw.ll_notes AS notes,
+    augw.ll_retailer_link AS "retailerLink",
+    augw.ts_added_at AS addedAt
 FROM assoc_users_games_wishlists AS augw
-INNER JOIN ref_games AS rg ON rg.id = augw.ll_game_id
-INNER JOIN ref_platforms AS rp ON rp.id = augw.ll_platform_id
+INNER JOIN ref_games AS rg ON rg.id_game = augw.id_game
+INNER JOIN ref_platforms AS rp ON rp.id_platform = augw.id_platform
 WHERE augw.flag_active = TRUE
-AND ll_user_id = $1
-AND ll_platform_id = $2
+AND augw.id_user = $1
+AND augw.id_platform = $2
 ORDER BY augw.ll_priority ASC, rg.ll_title ASC, rp.ll_name ASC;
 `;
 
 export const deleteGameFromWishlist = `
 UPDATE assoc_users_games_wishlists
 SET flag_active = FALSE
-WHERE ll_user_id = $1
-AND ll_game_id = $2
-AND ll_platform_id = $3
+WHERE id_user = $1
+AND id_game = $2
+AND id_platform = $3
 AND flag_active = TRUE
-RETURNING id;
+RETURNING id_user_game_wishlist AS id;
 `;
 
-export const getWishlistPlatforms= `
+export const getWishlistPlatforms = `
 SELECT
-    rp.id AS platform_id,
-    rp.ll_name AS platform_name,
-    COALESCE(SUM(augw.nb_price_target), 0) AS total_value
+    rp.id_platform AS "platformId",
+    rp.ll_name AS platformName,
+    COALESCE(SUM(augw.nb_price_target), 0) AS "totalValue"
 FROM
     assoc_users_games_wishlists AS augw
 INNER JOIN ref_platforms AS rp
-    ON augw.ll_platform_id = rp.id
+    ON augw.id_platform = rp.id_platform
 WHERE
     augw.flag_active = TRUE
-    AND augw.ll_user_id = $1
+    AND augw.id_user = $1
     AND rp.flag_active = TRUE
 GROUP BY
-    rp.id,
+    rp.id_platform,
     rp.ll_name
 ORDER BY
     rp.ll_name ASC;
@@ -77,25 +77,25 @@ ORDER BY
 
 export const getWishlistPlatformGame = `
 SELECT
-    augw.id,
-    rg.id as game_id,
-    rg.ll_title as title,
-    rg.ll_cover_image as cover_image,
-    rg.ll_cover_image_large as cover_image_large,
-    rg.ll_game_url as game_url,
-    rp.id as platform_id,
-    rp.ll_name as platform_name,
-    augw.nb_price_target as price_target,
-    augw.ll_priority as priority,
-    augw.ll_notes as notes,
-    augw.ll_retailer_link as retailer_link,
-    augw.ts_added_at as added_at
+    augw.id_user_game_wishlist AS "wishlistId",
+    rg.id_game AS "gameId",
+    rg.ll_title AS title,
+    rg.ll_cover_image AS "coverImage",
+    rg.ll_cover_image_large AS "coverImageLarge",
+    rg.ll_game_url AS "gameUrl",
+    rp.id_platform AS "platformId",
+    rp.ll_name AS platformName,
+    augw.nb_price_target AS "priceTarget",
+    augw.ll_priority AS priority,
+    augw.ll_notes AS notes,
+    augw.ll_retailer_link AS "retailerLink",
+    augw.ts_added_at AS addedAt
 FROM
     assoc_users_games_wishlists AS augw
-INNER JOIN ref_games AS rg ON rg.id = augw.ll_game_id
-INNER JOIN ref_platforms AS rp ON rp.id = augw.ll_platform_id
+INNER JOIN ref_games AS rg ON rg.id_game = augw.id_game
+INNER JOIN ref_platforms AS rp ON rp.id_platform = augw.id_platform
 WHERE augw.flag_active = TRUE
-AND augw.ll_user_id = $1
-AND augw.ll_game_id = $2
-AND augw.ll_platform_id = $3;
+AND augw.id_user = $1
+AND augw.id_game = $2
+AND augw.id_platform = $3;
 `;

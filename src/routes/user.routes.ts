@@ -11,6 +11,7 @@ const router: Router = Router();
 
 router.post('/register', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	const { name, email, password }: UserRegisterRequest = req.body;
+	console.log(req.body);
 	if (!name || !email || !password) {
 		return ResponsesUtil.invalidParameters(res, { error: 'REGISTER_USER_MISSING_PARAMETERS' });
 	}
@@ -29,36 +30,44 @@ router.post('/register', async (req: Request, res: Response, next: NextFunction)
 
 router.post('/login', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	const { email, password }: UserLoginRequest = req.body;
+	console.log(req.body);
+	console.log('email:', email);
+	console.log('password:', password);
 	if (!email || !password) {
 		return ResponsesUtil.invalidParameters(res, { error: 'LOGIN_USER_MISSING_PARAMETERS' });
 	}
 
 	const existsEmail = await UserService.checkUserExists(email);
+	console.log('existsEmail:', existsEmail);
 	if (!existsEmail) {
 		return ResponsesUtil.invalidParameters(res, { error: 'EMAIL_NOT_FOUND' });
 	}
 
 	const user: UserInfoResponse = await UserService.getUserByEmail(email);
+	console.log('user:', user);
 	if (!user) {
 		return ResponsesUtil.invalidParameters(res, { error: 'USER_INFO_NOT_FOUND' });
 	}
 
-	const verifiedPassword = await PasswordService.verifyPassword(password, user.ll_password_hash);
+	const verifiedPassword = await PasswordService.verifyPassword(password, user.passwordHash);
+	console.log('verifiedPassword:', verifiedPassword);
 	if (!verifiedPassword) {
 		return ResponsesUtil.invalidParameters(res, { error: 'INVALID_PASSWORD' });
 	}
 
-	const existsToken = await UserService.checkUserToken(user.id);
+	const existsToken = await UserService.checkUserToken(user.userId);
+	console.log('existsToken:', existsToken);
 	if (existsToken) {
-		await UserService.updateUserToken(user.id);
+		await UserService.updateUserToken(user.userId);
 	}
 
-	const token = await TokenService.generateToken(user.id);
+	const token = await TokenService.generateToken(user.userId);
+	console.log('token:', token);
 	if (!token) {
 		return ResponsesUtil.somethingWentWrong(res, { error: 'GENERATE_TOKEN_FAILED' });
 	}
 
-	await UserService.registerUserToken(user.id, token);
+	await UserService.registerUserToken(user.userId, token);
 
 	const result = {
 		user,
@@ -82,7 +91,7 @@ router.get('/me', authMiddleware, async (req: Request, res: Response, next: Next
 			return ResponsesUtil.unauthorizedAction(res, { message: 'Token invalide' });
 		}
 
-		const result: string = await UserService.getUserById(userId);
+		const result: UserInfoResponse = await UserService.getUserById(userId);
 		if (!result) {
 			return ResponsesUtil.notFound(res, { error: 'USER_INFO_NOT_FOUND' });
 		}
@@ -96,7 +105,7 @@ router.get('/me', authMiddleware, async (req: Request, res: Response, next: Next
 router.get('/:id', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 		const { id } = req.params;
-		const result: string = await UserService.getUserByEmail(id);
+		const result: UserInfoResponse = await UserService.getUserByEmail(id);
 		if (!result) {
 			return ResponsesUtil.notFound(res, { error: 'USER_INFO_NOT_FOUND' });
 		}

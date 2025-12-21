@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from "express";
 import ResponsesUtil from "@utils/responses.util";
 import { authMiddleware } from "@middlewares/auth.middleware";
 import CollectionService from "@services/collection.service";
-import { AddGameCollection } from "@utils/interfaces/collection.interface";
+import { AddGameCollection, CollectionPlatform } from "@utils/interfaces/collection.interface";
 
 const router: Router = Router();
 
@@ -17,11 +17,11 @@ const router: Router = Router();
  * @see CollectionService.addGameToCollection() - Fonction service appelée pour ajouter le jeu
  * @see addGameToCollection (collection.queries.ts) - Requête SQL utilisée
  * 
- * @route POST /collection/new
+ * @route POST /collection/add/game
  * @access Private (nécessite authentification)
  * @body {AddGameCollection} - Données du jeu à ajouter à la collection
  */
-router.post('/new',  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+router.post('/add/game',  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 		const addGameCollection: AddGameCollection = req.body;
 		console.log('addGameCollection:', addGameCollection);
@@ -141,6 +141,33 @@ router.get('/:userId/platform/:platformId/games/list',  async (req: Request, res
 		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
 	} catch (error) {
 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_GAMES_LIST_BY_PLATFORM_FAILED', error: error });
+	}
+});
+
+
+/**
+ * ROUTE API : Récupère la liste des plateformes dans la collection d'un utilisateur
+ * 
+ * @see CollectionService.getCollectionPlatformListOwned() - Fonction service appelée
+ * @see getCollectionPlatformListOwned (collection.queries.ts) - Requête SQL utilisée
+ * 
+ * @route GET /collection/:userId/platforms/owned
+ * @access Private (nécessite authentification)
+ * @param {string} userId - ID de l'utilisateur
+ */
+router.get('/:userId/platforms/owned', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+	try {
+		const userId = req.params.userId;
+		if (!userId) {
+			return ResponsesUtil.invalidParameters(res, { error: 'MISSING_PARAMETERS' });
+		}
+		const result : CollectionPlatform[] = await CollectionService.getCollectionPlatformListOwned(userId);
+		if (!result) {
+			return ResponsesUtil.notFound(res, { error: 'COLLECTION_PLATFORM_LIST_OWNED_NOT_FOUND' });
+		}
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
+	} catch (error) {
+		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_COLLECTION_PLATFORM_LIST_OWNED_FAILED', error: error });
 	}
 });
 

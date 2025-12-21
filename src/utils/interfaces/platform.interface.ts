@@ -1,13 +1,18 @@
-export interface Platforms {
-	id: string;
-	name: string;
+export interface Platform {
+    platformId: string;
+    platformName: string;
+    slug: string;
+    manufacturer: string;
+    url: string;
+    details: string;
+    regionName: string;
+    regionCode: string;
 }
 
-export interface Platform {
-	id: string;
-	slug: string;
-	name: string;
-	manufacturer: string;
-	url: string;
-	details: string;
+export interface PlatformConditions {
+    conditionStateId: string;
+    code: string;
+    label: string;
+    description: string;
+    rating: number;
 }
