@@ -21,6 +21,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction): Promise
 router.get('/conditions', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 		const result: PlatformConditions[] = await PlatformService.getPlatformConditions();
+		console.log('result:', result);
 		if (!result) {
 			return ResponsesUtil.notFound(res, { error: 'PLATFORM_CONDITIONS_NOT_FOUND' });
 		}

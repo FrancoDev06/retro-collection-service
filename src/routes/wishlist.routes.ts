@@ -28,20 +28,15 @@ router.post('/new', authMiddleware, async (req: Request, res: Response, next: Ne
 			return ResponsesUtil.invalidParameters(res, { error: 'MISSING_PARAMETERS' });
 		}
 
-		const gameExists = await WishlistService.checkGameExistsInWishlist(addGameWishlist.userId, addGameWishlist.gameId , addGameWishlist.platformId);
-		console.log('gameExists:', gameExists);
-		if (gameExists) {
-			return ResponsesUtil.invalidParameters(res, { error: 'GAME_ALREADY_IN_WISHLIST' });
-		}
-
 		const result = await WishlistService.addGameToWishlist(
 			addGameWishlist.userId,
 			addGameWishlist.gameId,
 			addGameWishlist.platformId,
-			addGameWishlist.notes,
 			addGameWishlist.priceTarget,
+			addGameWishlist.notes || '',
+			addGameWishlist.addedAt,
 			addGameWishlist.priority,
-			addGameWishlist.retailerLink,
+			addGameWishlist.condition
 		);
 		if (!result) {
 			return ResponsesUtil.notFound(res, { error: 'ADD_GAME_TO_WISHLIST_FAILED' });
@@ -69,8 +64,6 @@ router.get('/:userId/platform/:platformId/games/list', authMiddleware, async (re
 	try {
 		const userId = req.params.userId;
 		const platformId = req.params.platformId;
-		console.log('userId:', userId);
-		console.log('platformId:', platformId);
 		if (!userId || !platformId) {
 			return ResponsesUtil.invalidParameters(res, { error: 'USER_ID_NOT_FOUND' });
 		}
@@ -149,14 +142,10 @@ router.get('/:userId/platform/:platformId/game/:gameId', authMiddleware, async (
 		const userId = req.params.userId;
 		const gameId = req.params.gameId;
 		const platformId = req.params.platformId;
-		console.log('userId:', userId);
-		console.log('gameId:', gameId);
-		console.log('platformId:', platformId);
 		if (!userId || !gameId || !platformId) {
 			return ResponsesUtil.invalidParameters(res, { error: 'MISSING_PARAMETERS' });
 		}
 		const result = await WishlistService.getWishlistPlatformGame(userId, gameId, platformId);
-		console.log('result:', result);
 		if (!result) {
 			return ResponsesUtil.notFound(res, { error: 'GET_GAMES_FROM_WISHLIST_BY_PLATFORM_FAILED' });
 		}
@@ -164,6 +153,18 @@ router.get('/:userId/platform/:platformId/game/:gameId', authMiddleware, async (
 	}
 	catch (error) {
 		return ResponsesUtil.somethingWentWrong(res, { error: 'GET_GAMES_FROM_WISHLIST_BY_PLATFORM_FAILED', details: error as string });
+	}
+});
+
+router.get('/priorities', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+	try {
+		const result = await WishlistService.getPriorities();
+		if (!result) {
+			return ResponsesUtil.notFound(res, { error: 'GET_PRIORITIES_FAILED' });
+		}
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
+	} catch (error) {
+		return ResponsesUtil.somethingWentWrong(res, { error: 'GET_PRIORITIES_FAILED', details: error as string });
 	}
 });
 

@@ -41,7 +41,6 @@ export default class UserService {
 	}
 
 	static async checkUserToken(userId: string): Promise<any> {
-		console.log('checkUserToken', userId);
 		const result = await DatabaseUtil.query(DatabaseUtil.pool, checkUserToken, [userId])
 			.then((res) => res.rows[0].exists)
 			.catch((err) => Promise.reject({ id: 'UserService.checkUserToken.checkUserToken', error: err }));

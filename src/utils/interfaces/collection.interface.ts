@@ -52,22 +52,23 @@ export interface AddPlatformCollection {
 	userId: string;
 	platformId: string;
 	units: number;
-	notes: string;
-	pricePaid: number;
-	datePurchase: string;
-	cartConditionId: string;
-	boxConditionId: string;
-	conditionId: string;
+	conditionStateId?: string;
+	purchaseSource?: string;
+	pricePaid?: number;
+	acquiredAt?: string;
+	notes?: string;
 }
 
 export interface CollectionPlatform {
-	userId: string;
-	platformId: string;
-	platformName: string;
-	units: number;
-	conditionStateId: string;
-	purchaseSource: string;
-	pricePaid: number;
-	acquiredAt: Date;
-	notes: string;
+    userId: string;
+    platformId: string;
+    platformName: string;
+    units: number;
+    conditionStateLabel: string;
+    conditionStateDescription: string;
+    conditionStateRating: number;
+    purchaseSource: string;
+    pricePaid: number;
+    acquiredAt: string;
+    notes: string;
 }

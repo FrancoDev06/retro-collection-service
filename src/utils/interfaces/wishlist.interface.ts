@@ -2,10 +2,11 @@ export interface AddGameWishlist {
 	userId: string;
 	gameId: string;
 	platformId: string;
-	notes: string;
 	priceTarget: number;
+	notes?: string;
+	addedAt: string;
 	priority: string;
-	retailerLink: string;
+	condition: string
 }
 
 export interface WishlistGame {
@@ -20,7 +21,6 @@ export interface WishlistGame {
 	priceTarget: number;
 	priority: string;
 	notes: string;
-	retailerLink: string;
 	addedAt: Date;
 }
 
@@ -28,4 +28,13 @@ export interface WishlistPlatform {
 	platformId: string;
 	platformName: string;
 	totalValue: number;
+	gamesCount: number;
+}
+
+export interface Priority {
+	priorityId: string;
+    code: string;
+	label: string;
+	order: number;
+	description: string;
 }

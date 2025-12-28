@@ -11,7 +11,6 @@ const router: Router = Router();
 
 router.post('/register', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	const { name, email, password }: UserRegisterRequest = req.body;
-	console.log(req.body);
 	if (!name || !email || !password) {
 		return ResponsesUtil.invalidParameters(res, { error: 'REGISTER_USER_MISSING_PARAMETERS' });
 	}
@@ -30,39 +29,31 @@ router.post('/register', async (req: Request, res: Response, next: NextFunction)
 
 router.post('/login', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	const { email, password }: UserLoginRequest = req.body;
-	console.log(req.body);
-	console.log('email:', email);
-	console.log('password:', password);
 	if (!email || !password) {
 		return ResponsesUtil.invalidParameters(res, { error: 'LOGIN_USER_MISSING_PARAMETERS' });
 	}
 
 	const existsEmail = await UserService.checkUserExists(email);
-	console.log('existsEmail:', existsEmail);
 	if (!existsEmail) {
 		return ResponsesUtil.invalidParameters(res, { error: 'EMAIL_NOT_FOUND' });
 	}
 
 	const user: UserInfoResponse = await UserService.getUserByEmail(email);
-	console.log('user:', user);
 	if (!user) {
 		return ResponsesUtil.invalidParameters(res, { error: 'USER_INFO_NOT_FOUND' });
 	}
 
 	const verifiedPassword = await PasswordService.verifyPassword(password, user.passwordHash);
-	console.log('verifiedPassword:', verifiedPassword);
 	if (!verifiedPassword) {
 		return ResponsesUtil.invalidParameters(res, { error: 'INVALID_PASSWORD' });
 	}
 
 	const existsToken = await UserService.checkUserToken(user.userId);
-	console.log('existsToken:', existsToken);
 	if (existsToken) {
 		await UserService.updateUserToken(user.userId);
 	}
 
 	const token = await TokenService.generateToken(user.userId);
-	console.log('token:', token);
 	if (!token) {
 		return ResponsesUtil.somethingWentWrong(res, { error: 'GENERATE_TOKEN_FAILED' });
 	}

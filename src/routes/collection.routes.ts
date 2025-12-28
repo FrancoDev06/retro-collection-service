@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from "express";
 import ResponsesUtil from "@utils/responses.util";
 import { authMiddleware } from "@middlewares/auth.middleware";
 import CollectionService from "@services/collection.service";
-import { AddGameCollection, CollectionPlatform } from "@utils/interfaces/collection.interface";
+import { AddGameCollection, AddPlatformCollection, CollectionPlatform } from "@utils/interfaces/collection.interface";
 
 const router: Router = Router();
 
@@ -28,13 +28,6 @@ router.post('/add/game',  async (req: Request, res: Response, next: NextFunction
 
 		if (!addGameCollection || !addGameCollection.gameId || !addGameCollection.platformId) {
 			return ResponsesUtil.invalidParameters(res, { error: 'MISSING_PARAMETERS' });
-		}
-
-		const gameExists = await CollectionService.checkGameExistsInCollection(addGameCollection.userId, addGameCollection.gameId , addGameCollection.platformId);
-		console.log('gameExists:', gameExists);
-		
-		if (gameExists) {
-			return ResponsesUtil.invalidParameters(res, { error: 'GAME_ALREADY_IN_COLLECTION' });
 		}
 
 		const result = await CollectionService.addGameToCollection(
@@ -168,6 +161,30 @@ router.get('/:userId/platforms/owned', async (req: Request, res: Response, next:
 		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
 	} catch (error) {
 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_COLLECTION_PLATFORM_LIST_OWNED_FAILED', error: error });
+	}
+});
+
+router.post('/add/platform', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+
+	try {
+		const addPlatformCollection: AddPlatformCollection = req.body;
+		console.log('addPlatformCollection:', addPlatformCollection);
+		const result = await CollectionService.addPlatformToCollection(
+			addPlatformCollection.userId,
+			addPlatformCollection.platformId,
+			addPlatformCollection.units,
+			addPlatformCollection.conditionStateId,
+			addPlatformCollection.purchaseSource,
+			addPlatformCollection.pricePaid,
+			addPlatformCollection.acquiredAt,
+			addPlatformCollection.notes,
+		);
+		if (!result) {
+			return ResponsesUtil.notFound(res, { error: 'ADD_PLATFORM_TO_COLLECTION_FAILED' });
+		}
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
+	} catch (error) {
+		return ResponsesUtil.somethingWentWrong(res, { id_case: 'ADD_PLATFORM_TO_COLLECTION_FAILED', error: error });
 	}
 });
 

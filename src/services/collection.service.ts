@@ -1,7 +1,6 @@
 import DatabaseUtil from "@utils/database";
-import { addGameToCollection,getPlatformList, getGamesListByPlatformId, checkGameExistsInCollection, deleteGameFromCollection, getCollectionPlatformList, getCollectionPlatformListOwned } from "@utils/queries/collection.queries";
+import { addGameToCollection,getPlatformList, getGamesListByPlatformId, deleteGameFromCollection,addPlatformToCollection, getCollectionPlatformList, getCollectionPlatformListOwned } from "@utils/queries/collection.queries";
 import { Collection, CollectionPlatform } from "@utils/interfaces/collection.interface";
-// import { Platforms } from "@utils/interfaces/platform.interface";
 
 
 export default class CollectionService {
@@ -41,32 +40,20 @@ export default class CollectionService {
 		boxConditionId: string,
 		noticeConditionId: string,
 	): Promise<{ id: string }> {
-		console.log('userId:', userId);
-		console.log('gameId:', gameId);
-		console.log('platformId:', platformId);
-		console.log('notes:', notes);
-		console.log('pricePaid:', pricePaid);
-		console.log('datePurchase:', datePurchase);
-		console.log('hasCart:', hasCart);
-		console.log('hasBox:', hasBox);
-		console.log('hasNotice:', hasNotice);
-		console.log('cartConditionId:', cartConditionId);
-		console.log('boxConditionId:', boxConditionId);
-		console.log('noticeConditionId:', noticeConditionId);
 
 		const result = await DatabaseUtil.query(DatabaseUtil.pool, addGameToCollection, [
 			userId,
 			gameId,
 			platformId,
-			notes,
-			pricePaid,
-			datePurchase,
-			hasCart,
-			hasBox,
-			hasNotice,
-			cartConditionId,
-			boxConditionId,
-			noticeConditionId,
+			notes || null,
+			pricePaid || 0,
+			datePurchase || null,
+			hasCart || false,
+			hasBox || false,
+			hasNotice || false,
+			cartConditionId || null,
+			boxConditionId || null,
+			noticeConditionId || null,
 		])
 			.then((res) => res.rows[0])
 			.catch((err) => Promise.reject({ id: 'CollectionService.addGameToCollection.addGameToCollection', error: err }));
@@ -116,23 +103,6 @@ export default class CollectionService {
 		return result as Collection[];
 	}
 
-	/**
-	 * FONCTION SERVICE : Vérifie si un jeu spécifique existe déjà dans la collection d'un utilisateur
-	 * 
-	 * @see checkGameExistsInCollection (collection.queries.ts) - Requête SQL utilisée
-	 * @see POST /collection/new - Route API qui utilise cette vérification avant d'ajouter un jeu
-	 * 	
-	 * @param userId - ID de l'utilisateur
-	 * @param gameId - ID du jeu
-	 * @param platformId - ID de la plateforme
-	 * @returns Un booléen indiquant si le jeu existe (true) ou non (false) dans la collection active de l'utilisateur
-	 */
-	static async checkGameExistsInCollection(userId: string, gameId: string, platformId: string): Promise<any> {
-		const result = await DatabaseUtil.query(DatabaseUtil.pool, checkGameExistsInCollection, [userId, gameId, platformId])
-			.then((res) => res.rows[0].exists)
-			.catch((err) => Promise.reject({ id: 'CollectionService.checkGameExistsInCollection.checkGameExistsInCollection', error: err }));
-		return result;
-	}
 
 	static async getCollectionPlatformList(userId: string): Promise<CollectionPlatform[]> {
 		const result = await DatabaseUtil.query(DatabaseUtil.pool, getCollectionPlatformList, [userId])
@@ -146,6 +116,23 @@ export default class CollectionService {
 			.then((res) => res.rows)
 			.catch((err) => Promise.reject({ id: 'CollectionService.getCollectionPlatformListOwned.getCollectionPlatformListOwned', error: err }));
 		return result as CollectionPlatform[];
+	}
+
+	static async addPlatformToCollection(userId: string, platformId: string, units: number, conditionStateId?: string, purchaseSource?: string, pricePaid?: number, acquiredAt?: string, notes?: string): Promise<{ id: string }> {
+		
+		const result = await DatabaseUtil.query(DatabaseUtil.pool, addPlatformToCollection, [
+			userId,
+			platformId,
+			units,
+			conditionStateId || null,
+			purchaseSource || null,
+			pricePaid || null,
+			acquiredAt || null,
+			notes || null
+		])
+			.then((res) => res.rows[0])
+			.catch((err) => Promise.reject({ id: 'CollectionService.addPlatformToCollection.addPlatformToCollection', error: err }));
+		return result as { id: string };
 	}
 
 }

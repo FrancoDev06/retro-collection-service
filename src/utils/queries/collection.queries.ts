@@ -166,31 +166,6 @@ export const getGamesListByPlatformId = `
         rg.ll_title ASC;
 `;
 
-/**
- * REQUÊTE SQL : Vérifie si un jeu spécifique existe déjà dans la collection d'un utilisateur
- * 
- * @see CollectionService.checkGameExistsInCollection() - Fonction service qui utilise cette requête
- * @see POST /collection/new - Route API qui utilise cette vérification avant d'ajouter un jeu
- * 
- * @param $1 id_user - ID de l'utilisateur
- * @param $2 id_game - ID du jeu
- * @param $3 id_platform - ID de la plateforme
- * @returns Un booléen indiquant si le jeu existe (true) ou non (false) dans la collection active de l'utilisateur
- */
-export const checkGameExistsInCollection = `
-SELECT
-    EXISTS(
-        SELECT
-            1
-        FROM
-            assoc_users_games_collections
-        WHERE
-            flag_active = TRUE
-            AND id_user = $1
-            AND id_game = $2
-            AND id_platform = $3
-        ) AS exists;
-`;
 
 /**
  * REQUÊTE SQL : Récupère la liste des plateformes dans la collection d'un utilisateur
@@ -213,7 +188,7 @@ export const getCollectionPlatformList = `
         augp.ts_acquired_at AS "acquiredAt",
         augp.ll_notes AS "notes"
     FROM
-        assoc_users_platforms AS augp
+        assoc_users_platforms_collections AS augp
     INNER JOIN ref_platforms AS rp ON rp.id_platform = augp.id_platform
     WHERE
         augp.flag_active = TRUE
@@ -223,22 +198,52 @@ export const getCollectionPlatformList = `
 `;
 
 export const getCollectionPlatformListOwned = `
-    SELECT
-        augp.id_user AS "userId",
-        augp.id_platform AS "platformId",
-        rp.ll_name AS "platformName",
-        augp.nb_units AS "units",
-        augp.id_condition_state AS "conditionStateId",
-        augp.ll_purchase_source AS "purchaseSource",
-        augp.nb_price_paid AS "pricePaid",
-        augp.ts_acquired_at AS "acquiredAt",
-        augp.ll_notes AS "notes"
-    FROM
-        assoc_users_platforms AS augp    
+SELECT
+    augp.id_user AS "userId",
+    augp.id_platform AS "platformId",
+    rp.ll_name AS "platformName",
+    augp.nb_units AS "units",
+    rcs.ll_label AS "conditionStateLabel",
+    rcs.ll_description AS "conditionStateDescription",
+    rcs.nb_rating AS "conditionStateRating",
+    augp.ll_purchase_source AS "purchaseSource",
+    augp.nb_price_paid AS "pricePaid",
+    augp.ts_acquired_at AS "acquiredAt",
+    augp.ll_notes AS "notes"
+FROM
+    assoc_users_platforms_collections AS augp
     INNER JOIN ref_platforms AS rp ON rp.id_platform = augp.id_platform
-    WHERE
-        augp.flag_active = TRUE
-        AND augp.id_user = $1
-    ORDER BY
-        rp.ll_name ASC;
+    INNER JOIN ref_condition_states AS rcs ON rcs.id_condition_state = augp.id_condition_state
+WHERE
+    augp.flag_active = TRUE
+    AND augp.id_user = $1
+ORDER BY
+    rp.ll_name ASC;
+`;
+
+export const addPlatformToCollection = `
+INSERT INTO
+    assoc_users_platforms_collections (
+        id_user,
+        id_platform,
+        nb_units,
+        id_condition_state,
+        ll_purchase_source,
+        nb_price_paid,
+        ts_acquired_at,
+        ll_notes
+    )
+VALUES
+    (
+        $1,
+        $2,
+        $3,
+        $4,
+        $5,
+        $6,
+        $7,
+        $8
+    )
+RETURNING
+    id_user_platform_collection AS id;
 `;

@@ -1,27 +1,13 @@
 import DatabaseUtil from "@utils/database";
-import { addGameToWishlist, checkGameExistsInWishlist, getGamesFromWishlist, deleteGameFromWishlist, getWishlistPlatforms, getWishlistPlatformGame } from "@utils/queries/wishlist.queries";
-import { WishlistGame, WishlistPlatform } from "@utils/interfaces/wishlist.interface";
+import { addGameToWishlist, getGamesFromWishlist, deleteGameFromWishlist, getWishlistPlatforms, getWishlistPlatformGame, getPriorities } from "@utils/queries/wishlist.queries";
+import { WishlistGame, WishlistPlatform, Priority } from "@utils/interfaces/wishlist.interface";
 
 export default class WishlistService {
-    static async addGameToWishlist(userId: string, gameId: string, platformId: string, notes: string, priceTarget: number, priority: string, retailerLink: string): Promise<{ id: string }> {
-        console.log('userId:', userId);
-        console.log('gameId:', gameId);
-        console.log('platformId:', platformId);
-        console.log('notes:', notes);
-        console.log('priceTarget:', priceTarget);
-        console.log('priority:', priority);
-        console.log('retailerLink:', retailerLink);
-        const result = await DatabaseUtil.query(DatabaseUtil.pool, addGameToWishlist, [userId, gameId, platformId, notes, priceTarget, priority, retailerLink])
+    static async addGameToWishlist(userId: string, gameId: string, platformId: string, priceTarget: number, notes: string, addedAt: string, priority: string, condition: string): Promise<{ id: string }> {
+        const result = await DatabaseUtil.query(DatabaseUtil.pool, addGameToWishlist, [userId, gameId, platformId, priceTarget, notes, addedAt, priority, condition])
             .then((res) => res.rows[0])
             .catch((err) => Promise.reject({ id: 'WishlistService.addGameToWishlist.addGameToWishlist', error: err }));
         return result as { id: string };
-    }
-
-    static async checkGameExistsInWishlist(userId: string, gameId: string, platformId: string): Promise<boolean> {
-        const result = await DatabaseUtil.query(DatabaseUtil.pool, checkGameExistsInWishlist, [userId, gameId, platformId])
-            .then((res) => res.rows[0].exists)
-            .catch((err) => Promise.reject({ id: 'WishlistService.checkGameExistsInWishlist.checkGameExistsInWishlist', error: err }));
-        return result;
     }
 
     static async getGamesFromWishlist(userId: string, platformId: string): Promise<WishlistGame[]> {
@@ -50,5 +36,12 @@ export default class WishlistService {
             .then((res) => res.rows[0])
             .catch((err) => Promise.reject({ id: 'WishlistService.getWishlistPlatformGame.getWishlistPlatformGame', error: err }));
         return result as WishlistGame;
+    }
+
+    static async getPriorities(): Promise<Priority[]> {
+        const result = await DatabaseUtil.query(DatabaseUtil.pool, getPriorities, [])
+            .then((res) => res.rows)
+            .catch((err) => Promise.reject({ id: 'WishlistService.getPriorities.getPriorities', error: err }));
+        return result as Priority[];
     }
 }

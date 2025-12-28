@@ -26,6 +26,6 @@ export const getPlatformConditions = `
         rcs.nb_rating AS "rating"
     FROM
         ref_condition_states AS rcs
-    WHERE rcs.ll_element_type = 'console' AND rcs.flag_active = TRUE
+    WHERE rcs.ll_element_type = 'platform' AND rcs.flag_active = TRUE
     ORDER BY rcs.ll_label ASC
 `;

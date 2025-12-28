@@ -69,8 +69,6 @@ router.get('/count', authMiddleware, async (req: Request, res: Response, next: N
 router.get('/platform/:platformId/game/:gameId', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 		const { platformId, gameId } = req.params;
-		console.log('platformId:', platformId);
-		console.log('gameId:', gameId);
 		if (!platformId || !gameId) {
 			return ResponsesUtil.invalidParameters(res, { error: 'MISSING_PARAMETERS' });
 		}
