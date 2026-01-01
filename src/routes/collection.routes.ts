@@ -139,7 +139,7 @@ router.get('/:userId/platform/:platformId/games/list',  async (req: Request, res
 
 
 /**
- * ROUTE API : Récupère la liste des plateformes dans la collection d'un utilisateur
+ * ROUTE API : Récupère la liste des plateformes dans la collection d'un utilisateur possédées par l'utilisateur
  * 
  * @see CollectionService.getCollectionPlatformListOwned() - Fonction service appelée
  * @see getCollectionPlatformListOwned (collection.queries.ts) - Requête SQL utilisée
@@ -164,6 +164,34 @@ router.get('/:userId/platforms/owned', async (req: Request, res: Response, next:
 	}
 });
 
+router.get('/:userId/platforms/:platformId/owned', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+	try {
+		const userId = req.params.userId;
+		const platformId = req.params.platformId;
+		if (!userId || !platformId) {
+			return ResponsesUtil.invalidParameters(res, { error: 'MISSING_PARAMETERS' });
+		}
+		const result : CollectionPlatform[] = await CollectionService.getCollectionPlatformListOwnedByPlatformId(userId, platformId);
+		if (!result) {
+			return ResponsesUtil.notFound(res, { error: 'COLLECTION_PLATFORM_LIST_OWNED_NOT_FOUND' });
+		}
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
+	} catch (error) {
+		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_COLLECTION_PLATFORM_LIST_OWNED_FAILED', error: error });
+	}
+});
+
+
+/**
+ * ROUTE API : Ajoute une plateforme à la collection d'un utilisateur
+ * 
+ * @see CollectionService.addPlatformToCollection() - Fonction service appelée
+ * @see addPlatformToCollection (collection.queries.ts) - Requête SQL utilisée
+ * 
+ * @route POST /collection/add/platform
+ * @access Private (nécessite authentification)
+ * @body {AddPlatformCollection} - Données de la plateforme à ajouter à la collection
+ */
 router.post('/add/platform', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 
 	try {
@@ -185,6 +213,72 @@ router.post('/add/platform', async (req: Request, res: Response, next: NextFunct
 		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
 	} catch (error) {
 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'ADD_PLATFORM_TO_COLLECTION_FAILED', error: error });
+	}
+});
+
+router.get('/:userId/dashboard/values', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+	try {
+		const userId = req.params.userId;
+		console.log('userId:', userId);
+		if (!userId) {
+			return ResponsesUtil.invalidParameters(res, { error: 'MISSING_PARAMETERS' });
+		}
+		const result = await CollectionService.getTotalValue(userId);
+		console.log('result:', result);
+		if (!result) {
+			return ResponsesUtil.notFound(res, { error: 'TOTAL_VALUE_NOT_FOUND' });
+		}
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
+	} catch (error) {
+		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_TOTAL_VALUE_FAILED', error: error });
+	}
+});
+
+router.get('/:userId/dashboard/total/games', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+	try {
+		const userId = req.params.userId;
+		if (!userId) {
+			return ResponsesUtil.invalidParameters(res, { error: 'MISSING_PARAMETERS' });
+		}
+		const result = await CollectionService.getTotalGamesCount(userId);
+		if (!result) {
+			return ResponsesUtil.notFound(res, { error: 'TOTAL_GAMES_NOT_FOUND' });
+		}
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
+	} catch (error) {
+		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_TOTAL_GAMES_FAILED', error: error });
+	}
+});
+
+router.get('/:userId/dashboard/total/platforms', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+	try {
+		const userId = req.params.userId;
+		if (!userId) {
+			return ResponsesUtil.invalidParameters(res, { error: 'MISSING_PARAMETERS' });
+		}
+		const result = await CollectionService.getTotalPlatformsCount(userId);
+		if (!result) {
+			return ResponsesUtil.notFound(res, { error: 'TOTAL_PLATFORMS_NOT_FOUND' });
+		}
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
+	} catch (error) {
+		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_TOTAL_PLATFORMS_FAILED', error: error });
+	}
+});
+
+router.get('/:userId/dashboard/total/games/cib', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+	try {
+		const userId = req.params.userId;
+		if (!userId) {
+			return ResponsesUtil.invalidParameters(res, { error: 'MISSING_PARAMETERS' });
+		}
+		const result = await CollectionService.getTotalGamesCib(userId);
+		if (!result) {
+			return ResponsesUtil.notFound(res, { error: 'TOTAL_GAMES_COUNT_NOT_FOUND' });
+		}
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
+	} catch (error) {
+		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_TOTAL_GAMES_COUNT_FAILED', error: error });
 	}
 });
 

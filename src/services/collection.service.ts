@@ -1,5 +1,5 @@
 import DatabaseUtil from "@utils/database";
-import { addGameToCollection,getPlatformList, getGamesListByPlatformId, deleteGameFromCollection,addPlatformToCollection, getCollectionPlatformList, getCollectionPlatformListOwned } from "@utils/queries/collection.queries";
+import { addGameToCollection,getPlatformList, getGamesListByPlatformId, deleteGameFromCollection,addPlatformToCollection,  getCollectionPlatformList, getCollectionPlatformListOwned, getCollectionPlatformListOwnedByPlatformId, getTotalValue, getTotalGamesCount, getTotalPlatformsCount, getTotalGamesCib } from "@utils/queries/collection.queries";
 import { Collection, CollectionPlatform } from "@utils/interfaces/collection.interface";
 
 
@@ -134,5 +134,43 @@ export default class CollectionService {
 			.catch((err) => Promise.reject({ id: 'CollectionService.addPlatformToCollection.addPlatformToCollection', error: err }));
 		return result as { id: string };
 	}
+
+
+	static async getCollectionPlatformListOwnedByPlatformId(userId: string, platformId: string): Promise<CollectionPlatform[]> {
+		const result = await DatabaseUtil.query(DatabaseUtil.pool, getCollectionPlatformListOwnedByPlatformId, [userId, platformId])
+			.then((res) => res.rows)
+			.catch((err) => Promise.reject({ id: 'CollectionService.getCollectionPlatformListOwnedByPlatformId.getCollectionPlatformListOwnedByPlatformId', error: err }));
+		return result as CollectionPlatform[];
+	}
+
+	static async getTotalValue(userId: string): Promise<number> {
+		const result = await DatabaseUtil.query(DatabaseUtil.pool, getTotalValue, [userId])
+			.then((res) => res.rows[0].totalValue)
+			.catch((err) => Promise.reject({ id: 'CollectionService.getTotalValue.getTotalValue', error: err }));
+		return result as number;
+	}
+
+	static async getTotalGamesCount(userId: string): Promise<number> {
+		const result = await DatabaseUtil.query(DatabaseUtil.pool, getTotalGamesCount, [userId])
+			.then((res) => res.rows[0].totalGamesCount)
+			.catch((err) => Promise.reject({ id: 'CollectionService.getTotalGamesCount.getTotalGamesCount', error: err }));
+		return result as number;
+	}
+
+	static async getTotalPlatformsCount(userId: string): Promise<number> {
+		const result = await DatabaseUtil.query(DatabaseUtil.pool, getTotalPlatformsCount, [userId])
+			.then((res) => res.rows[0].totalPlatformsCount)
+			.catch((err) => Promise.reject({ id: 'CollectionService.getTotalPlatforms.getTotalPlatforms', error: err }));
+		return result as number;
+	}
+
+	static async getTotalGamesCib(userId: string): Promise<number> {
+		const result = await DatabaseUtil.query(DatabaseUtil.pool, getTotalGamesCib, [userId])
+			.then((res) => res.rows[0].totalGamesCib)
+			.catch((err) => Promise.reject({ id: 'CollectionService.getTotalGamesCib.getTotalGamesCib', error: err }));
+		return result as number;
+	}
+
+
 
 }

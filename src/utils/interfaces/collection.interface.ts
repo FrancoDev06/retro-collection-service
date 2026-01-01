@@ -72,3 +72,12 @@ export interface CollectionPlatform {
     acquiredAt: string;
     notes: string;
 }
+
+export interface CollectionPlatformList {
+    platformId: string;
+    platformName: string;
+    regionCode: string;
+    regionName: string;
+    gamesCount: number;
+    totalValue: number;
+}

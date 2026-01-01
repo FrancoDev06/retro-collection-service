@@ -81,31 +81,38 @@ RETURNING
 /**
  * REQUÊTE SQL : Récupère la liste des plateformes uniques présentes dans la collection de jeux d'un utilisateur
  * 
- * @see CollectionService.getPlatformList() - Fonction service commentée (non utilisée actuellement)
+ * @see CollectionService.getPlatformList() - Fonction service qui utilise cette requête
  * @note Cette fonctionnalité n'est pas encore exposée via une route API
  * 
  * @param $1 ll_user_id - ID de l'utilisateur
  * @returns Liste des plateformes (ID et nom) avec au moins un jeu dans la collection active de l'utilisateur
  */
 export const getPlatformList = `
-SELECT
-    rp.id_platform AS "platformId",
-    rp.ll_name AS "platformName",
-    COUNT(augc.id_user_game_collection) AS "gamesCount",
-    COALESCE(SUM(augc.nb_price_paid), 0) AS "totalValue"
-FROM
-    assoc_users_games_collections AS augc
-INNER JOIN ref_platforms AS rp
-    ON augc.id_platform = rp.id_platform
-WHERE
-    augc.flag_active = TRUE
-    AND augc.id_user = $1
-    AND rp.flag_active = TRUE
-GROUP BY
-    rp.id_platform,
-    rp.ll_name
-ORDER BY
-    rp.ll_name ASC;
+    SELECT
+        rp.id_platform AS "platformId",
+        rp.ll_name AS "platformName",
+        rr.ll_code AS "regionCode",
+        rr.ll_label AS "regionName",
+        COUNT(augc.id_user_game_collection) AS "gamesCount",
+        COALESCE(SUM(augc.nb_price_paid), 0) AS "totalValue"
+    FROM
+        assoc_users_games_collections AS augc
+    INNER JOIN ref_platforms AS rp
+        ON augc.id_platform = rp.id_platform
+    INNER JOIN ref_regions AS rr
+        ON rr.id_region = rp.id_region
+    WHERE
+        augc.flag_active = TRUE
+        AND augc.id_user = $1
+        AND rp.flag_active = TRUE
+    GROUP BY
+        rp.id_platform,
+        rp.ll_name,
+        rr.ll_code,
+        rr.ll_label
+    ORDER BY
+        rp.ll_name ASC,
+        rr.ll_code ASC;
 `;
 
 /**
@@ -246,4 +253,70 @@ VALUES
     )
 RETURNING
     id_user_platform_collection AS id;
+`;
+
+export const getCollectionPlatformListOwnedByPlatformId = `
+SELECT
+    augp.id_user AS "userId",
+    augp.id_platform AS "platformId",
+    rp.ll_name AS "platformName",
+    augp.nb_units AS "units",
+    rcs.ll_label AS "conditionStateLabel",
+    rcs.ll_description AS "conditionStateDescription",
+    rcs.nb_rating AS "conditionStateRating",
+    augp.ll_purchase_source AS "purchaseSource",
+    augp.nb_price_paid AS "pricePaid",
+    augp.ts_acquired_at AS "acquiredAt",
+    augp.ll_notes AS "notes"
+FROM
+    assoc_users_platforms_collections AS augp
+    INNER JOIN ref_platforms AS rp ON rp.id_platform = augp.id_platform
+    INNER JOIN ref_condition_states AS rcs ON rcs.id_condition_state = augp.id_condition_state
+WHERE
+    augp.flag_active = TRUE
+    AND augp.id_user = $1
+    AND augp.id_platform = $2
+ORDER BY
+    augp.ts_acquired_at ASC;
+`;
+
+export const getTotalValue = `
+SELECT
+    SUM(augc.nb_price_paid) AS "totalValue"
+FROM
+    assoc_users_games_collections AS augc
+WHERE
+    augc.flag_active = TRUE
+    AND augc.id_user = $1
+`;
+
+export const getTotalGamesCount = `
+SELECT
+    COUNT(augc.id_user_game_collection) AS "totalGamesCount"
+FROM
+    assoc_users_games_collections AS augc
+WHERE
+    augc.flag_active = TRUE
+    AND augc.id_user = $1
+`;
+
+
+export const getTotalPlatformsCount = `
+SELECT
+    COUNT(augp.id_user_platform_collection) AS "totalPlatformsCount"
+FROM
+    assoc_users_platforms_collections AS augp
+WHERE
+    augp.flag_active = TRUE
+    AND augp.id_user = $1
+`;
+
+export const getTotalGamesCib = `
+SELECT
+    COUNT(augc.id_user_game_collection) AS "totalGamesCib"
+FROM
+    assoc_users_games_collections AS augc
+WHERE
+    augc.flag_active = TRUE
+    AND augc.id_user = $1
 `;

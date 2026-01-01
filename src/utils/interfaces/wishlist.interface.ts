@@ -5,7 +5,8 @@ export interface AddGameWishlist {
 	priceTarget: number;
 	notes?: string;
 	addedAt: string;
-	priority: string;
+	priority?: string;
+	priorityId?: string;
 	condition: string
 }
 
@@ -37,4 +38,50 @@ export interface Priority {
 	label: string;
 	order: number;
 	description: string;
+}
+
+export interface WishlistGamesList {
+	userId: string;
+	gameId: string;
+	platformId: string;
+	priceTarget: number;
+	notes: string;
+	addedAt: Date;
+	active: boolean;
+	condition: string;
+	priority: string;
+	priorityLabel: string;
+	priorityDescription: string;
+	priorityOrder: number;
+	coverImageLarge: string;
+	title: string;
+	gameUrl: string;
+	regionId: string;
+	regionCode: string;
+	regionLabel: string;
+	platformName: string;
+}
+
+export interface AddPlatformWishlist {
+	userId: string;
+	platformId: string;
+	priceTarget: number;
+	notes?: string;
+	addedAt: string;
+	priorityId?: string;
+	condition: string
+}
+
+export interface WishlistPlatformWish {
+    wishlistId: string;
+    platformId: string;
+    priorityId: string;
+    priorityLabel: string;
+    condition: string;
+    platformName: string;
+    regionLabel: string;
+    regionCode: string;
+    priceTarget: number;
+    notes: string;
+    addedAt: Date;
 }
