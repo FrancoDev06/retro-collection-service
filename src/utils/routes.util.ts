@@ -10,6 +10,7 @@ import { GamesRouter } from "@routes/games.routes";
 import { CollectionRouter } from "@routes/collection.routes";
 import { WishlistRouter } from "@routes/wishlist.routes";
 import { PlatformRouter } from "@routes/platform.routes";
+import { DashboardRouter } from "@routes/dshboard.routes";
 
 
 export default class RoutesUtil {
@@ -36,6 +37,7 @@ export default class RoutesUtil {
 		add('collection', CollectionRouter);
 		add('wishlist', WishlistRouter);
 		add('platforms', PlatformRouter);
+		add('dashboard', DashboardRouter);
 
 		instance.use((error: any, __: Request, res: Response, ___: NextFunction) => ResponsesUtil.somethingWentWrong(res, error instanceof SyntaxError ? { id_case: 'MISFORMED_JSON_BODY' } : {}));
 		instance.use((_: Request, res: Response, __: NextFunction) => ResponsesUtil.notFound(res));

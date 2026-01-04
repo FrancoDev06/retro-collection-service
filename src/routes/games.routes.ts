@@ -3,7 +3,6 @@ import { Router } from "express";
 import GameService from "@services/games.service";
 import { Request, Response, NextFunction } from "express";
 import { Game, Games, Conditions, GamePrices } from "@utils/interfaces/games.interface";
-import { Prices } from "@utils/interfaces/prices.interface";
 import { authMiddleware } from "@middlewares/auth.middleware";
 
 const router: Router = Router();
@@ -277,38 +276,6 @@ router.get('/conditions/notice', authMiddleware, async (req: Request, res: Respo
 	}
 });
 
-
-
-
-
-// router.get('/:id',  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-// 	try {
-// 		const { id } = req.params;
-// 		const game : Game = await GameService.getGame(id);
-// 		if (!game) {
-// 			return ResponsesUtil.notFound(res, { error: 'GAME_NOT_FOUND' });
-// 		}
-// 		return ResponsesUtil.handleResult(res, { info: 'execok', data: { game } });
-// 	} catch (error) {
-// 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_GAME_INFO_FAILED', error: error });
-// 	}
-// });
-
-
-
-
-// router.get('/platform/:id/count',  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-// 	try {
-// 		const { id } = req.params;
-// 		const count: number = await GameService.getGamePlatformsCount(id);
-// 		if (!count) {
-// 			return ResponsesUtil.notFound(res, { error: 'GAME_PLATFORMS_COUNT_NOT_FOUND' });
-// 		}
-// 		return ResponsesUtil.handleResult(res, { info: 'execok', data: { count } });
-// 	} catch (error) {
-// 		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_GAME_PLATFORMS_COUNT_FAILED', error: error });
-// 	}
-// });
 
 /***************************************************************
 * NOT ALLOWED METHODS HANDLING

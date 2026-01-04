@@ -1,5 +1,39 @@
-export interface Collection {
-	id: string;
+export interface CollectionPlatformsList {
+    platformId: string;
+    platformName: string;
+    regionLabel: string;
+    regionCode: string;
+    conditionStateId: string;
+    conditionStateLabel: string;
+    pricePaid: number;
+    acquiredAt: string;
+}
+
+export interface CollectionPlatformOwnedInfo {
+    userId: string;
+    platformId: string;
+    platformName: string;
+    units: number;
+    conditionStateLabel: string;
+    conditionStateDescription: string;
+    conditionStateRating: number;
+    purchaseSource: string;
+    pricePaid: number;
+    acquiredAt: string;
+    notes: string;
+}
+
+
+export interface CollectionPlatformsGamesOwned {
+	platformId: string;
+	platformName: string;
+	regionCode: string;
+	regionName: string;
+	gamesCount: number;
+	totalValue: number;
+}
+
+export interface CollectionGameOwned {
 	gameId: string;
 	title: string;
 	coverImage: string;
@@ -12,24 +46,24 @@ export interface Collection {
 	description: string;
 	notes: string;
 	pricePaid: number;
-	acquiredAt: Date;
+	acquiredAt: string;
 	hasBox: boolean;
 	hasNotice: boolean;
 	cartConditionId: string;
-	cartConditionCode?: string;
-	cartConditionLabel?: string;
-	cartConditionDescription?: string;
-	cartConditionRating?: number;
+	cartConditionCode: string;
+	cartConditionLabel: string;
+	cartConditionDescription: string;
+	cartConditionRating: number;
 	boxConditionId: string;
-	boxConditionCode?: string;
-	boxConditionLabel?: string;
-	boxConditionDescription?: string;
-	boxConditionRating?: number;
+	boxConditionCode: string;
+	boxConditionLabel: string;
+	boxConditionDescription: string;
+	boxConditionRating: number;
 	noticeConditionId: string;
-	noticeConditionCode?: string;
-	noticeConditionLabel?: string;
-	noticeConditionDescription?: string;
-	noticeConditionRating?: number;
+	noticeConditionCode: string;
+	noticeConditionLabel: string;
+	noticeConditionDescription: string;
+	noticeConditionRating: number;
 	hasCart: boolean;
 }
 
@@ -57,27 +91,4 @@ export interface AddPlatformCollection {
 	pricePaid?: number;
 	acquiredAt?: string;
 	notes?: string;
-}
-
-export interface CollectionPlatform {
-    userId: string;
-    platformId: string;
-    platformName: string;
-    units: number;
-    conditionStateLabel: string;
-    conditionStateDescription: string;
-    conditionStateRating: number;
-    purchaseSource: string;
-    pricePaid: number;
-    acquiredAt: string;
-    notes: string;
-}
-
-export interface CollectionPlatformList {
-    platformId: string;
-    platformName: string;
-    regionCode: string;
-    regionName: string;
-    gamesCount: number;
-    totalValue: number;
 }

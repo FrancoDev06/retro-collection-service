@@ -32,14 +32,6 @@ export default class UserService {
 		return result as { userId: string };
 	}
 
-	static async loginUser(email: string, password: string): Promise<UserInfoResponse> {
-		const user = await DatabaseUtil.query(DatabaseUtil.pool, loginUser, [email])
-			.then((res) => res.rows[0])
-			.catch((err) => Promise.reject({ id: 'UserService.loginUser.loginUser', error: err }));
-
-		return user as UserInfoResponse;
-	}
-
 	static async checkUserToken(userId: string): Promise<any> {
 		const result = await DatabaseUtil.query(DatabaseUtil.pool, checkUserToken, [userId])
 			.then((res) => res.rows[0].exists)
