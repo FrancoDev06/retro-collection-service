@@ -5,6 +5,7 @@ import TokenService from "@services/token.service";
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 		const authHeader = req.headers.authorization;
+		console.log('authHeader:', authHeader);
 
 		if (!authHeader) {
 			return ResponsesUtil.unauthorizedAction(res, { message: 'Token manquant' });

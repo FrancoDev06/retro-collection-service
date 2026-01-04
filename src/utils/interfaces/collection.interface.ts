@@ -34,6 +34,7 @@ export interface CollectionPlatformsGamesOwned {
 }
 
 export interface CollectionGameOwned {
+	idUserGameCollection: string;
 	gameId: string;
 	title: string;
 	coverImage: string;

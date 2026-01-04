@@ -209,8 +209,7 @@ SET
     flag_active = FALSE
 WHERE
     id_user = $1
-    AND id_game = $2
-    AND id_platform = $3
+    AND id_user_game_collection = $2
     AND flag_active = TRUE
 RETURNING
     id_user_game_collection AS id;
@@ -218,6 +217,7 @@ RETURNING
 
 export const getCollectionGamesOwned = `
     SELECT
+        augc.id_user_game_collection AS "idUserGameCollection",
         rg.id_game AS "gameId",
         rg.ll_title AS title,
         rg.ll_cover_image AS "coverImage",

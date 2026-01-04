@@ -131,13 +131,15 @@ router.post('/add/game',  async (req: Request, res: Response, next: NextFunction
 	}
 });
 
-router.post('/game/delete', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+router.post('/:userId/game/delete', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
-		const { gameId, userId, platformId } = req.body;
-		if (!gameId || !userId || !platformId) {
+		console.log('req.body:', req.body);
+		const userId = req.params.userId;
+		const idUserGameCollection = req.body.idUserGameCollection;
+		if (!idUserGameCollection || !userId) {
 			return ResponsesUtil.invalidParameters(res, { error: 'MISSING_PARAMETERS' });
 		}
-		const result = await CollectionService.deleteGameFromCollection(userId, gameId, platformId);
+		const result = await CollectionService.deleteGameFromCollection(userId, idUserGameCollection);
 		if (!result) {
 			return ResponsesUtil.notFound(res, { error: 'DELETE_GAME_FROM_COLLECTION_FAILED' });
 		}

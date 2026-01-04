@@ -88,8 +88,10 @@ export default class CollectionService {
 		return result as { id: string };
 	}
 
-	static async deleteGameFromCollection(userId: string, gameId: string, platformId: string): Promise<{ id: string }> {
-		const result = await DatabaseUtil.query(DatabaseUtil.pool, deleteGameFromCollection, [userId, gameId, platformId])
+	static async deleteGameFromCollection(userId: string, idUserGameCollection: string): Promise<{ id: string }> {
+		console.log('userId', userId);
+		console.log('idUserGameCollection', idUserGameCollection);
+		const result = await DatabaseUtil.query(DatabaseUtil.pool, deleteGameFromCollection, [userId, idUserGameCollection])
 			.then((res) => res.rows[0])
 			.catch((err) => Promise.reject({ id: 'CollectionService.deleteGameFromCollection.deleteGameFromCollection', error: err }));
 		return result as { id: string };
