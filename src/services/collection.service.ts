@@ -1,6 +1,6 @@
 import DatabaseUtil from "@utils/database";
-import { addGameToCollection,getCollectionPlatformsList, deleteGameFromCollection,addPlatformToCollection, getCollectionPlatformOwnedInfo, getCollectionPlatformsGamesOwned, getCollectionGamesOwned } from "@utils/queries/collection.queries";
-import { CollectionPlatformsList, CollectionPlatformsGamesOwned, CollectionGameOwned, CollectionPlatformOwnedInfo } from "@utils/interfaces/collection.interface";
+import { addGameToCollection,getCollectionPlatformsList, deleteGameFromCollection,addPlatformToCollection, getCollectionPlatformOwnedInfo, getCollectionPlatformsGamesOwned, getCollectionGamesOwned, deletePlatformFromCollection, getCollectionPlatformsManufacturerOwned } from "@utils/queries/collection.queries";
+import { CollectionPlatformsList, CollectionPlatformsGamesOwned, CollectionGameOwned, CollectionPlatformOwnedInfo, CollectionPlatformsManufacturerOwned } from "@utils/interfaces/collection.interface";
 
 
 export default class CollectionService {
@@ -97,4 +97,19 @@ export default class CollectionService {
 		return result as { id: string };
 	}
 
+	static async deletePlatformFromCollection(userId: string, platformId: string): Promise<{ id: string }> {
+		console.log('userId', userId);
+		console.log('platformId', platformId);
+		const result = await DatabaseUtil.query(DatabaseUtil.pool, deletePlatformFromCollection, [userId, platformId])
+			.then((res) => res.rows[0])
+			.catch((err) => Promise.reject({ id: 'CollectionService.deletePlatformFromCollection.deletePlatformFromCollection', error: err }));
+		return result as { id: string };
+	}
+
+	static async getCollectionPlatformsManufacturerOwned(userId: string): Promise<CollectionPlatformsManufacturerOwned[]> {
+		const result : CollectionPlatformsManufacturerOwned[] = await DatabaseUtil.query(DatabaseUtil.pool, getCollectionPlatformsManufacturerOwned, [userId])
+			.then((res) => res.rows)
+			.catch((err) => Promise.reject({ id: 'CollectionService.getCollectionPlatformsManufacturerOwned.getCollectionPlatformsManufacturerOwned', error: err }));
+		return result as CollectionPlatformsManufacturerOwned[];
+	}
 }

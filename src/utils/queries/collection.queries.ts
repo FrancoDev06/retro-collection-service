@@ -191,17 +191,6 @@ RETURNING
     id_user_game_collection AS id;
 `;
 
-/**
- * REQUÊTE SQL : Supprime un jeu de la collection d'un utilisateur
- * 
- * @see CollectionService.deleteGameFromCollection() - Fonction service qui utilise cette requête
- * @see POST /collection/:userId/game/delete - Route API qui expose cette fonctionnalité
- * 
- * @param $1 ll_user_id - ID de l'utilisateur
- * @param $2 ll_game_id - ID du jeu
- * @param $3 ll_platform_id - ID de la plateforme
- * @returns L'ID de l'enregistrement supprimé
- */
 export const deleteGameFromCollection = `
 UPDATE
     assoc_users_games_collections
@@ -265,10 +254,6 @@ export const getCollectionGamesOwned = `
 `;
 
 
-
-
-
-
 export const addPlatformToCollection = `
 INSERT INTO
     assoc_users_platforms_collections (
@@ -296,5 +281,37 @@ RETURNING
     id_user_platform_collection AS id;
 `;
 
+export const deletePlatformFromCollection = `
+UPDATE
+    assoc_users_platforms_collections
+SET
+    flag_active = FALSE
+WHERE
+    id_user = $1
+    AND id_platform = $2
+    AND flag_active = TRUE
+RETURNING
+    id_user_platform_collection AS id;
+`;
 
-
+export const getCollectionPlatformsManufacturerOwned = `
+SELECT
+    rp.ll_manufacturer AS "manufacturer",
+    COUNT(DISTINCT augp.id_platform) AS "platformsOwned",
+    (
+        SELECT COUNT(DISTINCT rp_total.id_platform)
+        FROM ref_platforms AS rp_total
+        WHERE rp_total.ll_manufacturer = rp.ll_manufacturer
+            AND rp_total.flag_active = TRUE
+    ) AS "platformsTotal"
+FROM
+    assoc_users_platforms_collections AS augp
+INNER JOIN ref_platforms AS rp ON rp.id_platform = augp.id_platform
+WHERE
+    augp.flag_active = TRUE
+    AND augp.id_user = $1
+GROUP BY
+    rp.ll_manufacturer
+ORDER BY
+    rp.ll_manufacturer ASC
+`;

@@ -42,7 +42,7 @@ router.get('/:userId/games/value', authMiddleware, async (req: Request, res: Res
  * @route GET /dashboard/:userId/games/count
  * @access Private (nécessite authentification)
  */
-router.get('/:userId/games/total', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+router.get('/:userId/games/count', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 		const userId = req.params.userId;
 		if (!userId) {

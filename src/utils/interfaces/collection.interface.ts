@@ -93,3 +93,9 @@ export interface AddPlatformCollection {
 	acquiredAt?: string;
 	notes?: string;
 }
+
+export interface CollectionPlatformsManufacturerOwned {
+	manufacturer: string;
+	platformsOwned: number;
+	platformsTotal: number;
+}

@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from "express";
 import ResponsesUtil from "@utils/responses.util";
 import { authMiddleware } from "@middlewares/auth.middleware";
 import CollectionService from "@services/collection.service";
-import { CollectionGameOwned, AddGameCollection, AddPlatformCollection, CollectionPlatformOwnedInfo, CollectionPlatformsGamesOwned, CollectionPlatformsList } from "@utils/interfaces/collection.interface";
+import { CollectionGameOwned, AddGameCollection, AddPlatformCollection, CollectionPlatformOwnedInfo, CollectionPlatformsGamesOwned, CollectionPlatformsList, CollectionPlatformsManufacturerOwned } from "@utils/interfaces/collection.interface";
 const router: Router = Router();
 
 
@@ -149,8 +149,41 @@ router.post('/:userId/game/delete', authMiddleware, async (req: Request, res: Re
 	}
 });
 
+router.post('/:userId/platform/delete', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+	try {
+		console.log('req.body:', req.body);
+		const userId = req.params.userId;
+		console.log('userId:', userId);
+		const platformId = req.body.platformId;
+		if (!platformId || !userId) {
+			return ResponsesUtil.invalidParameters(res, { error: 'MISSING_PARAMETERS' });
+		}
+		const result = await CollectionService.deletePlatformFromCollection(userId, platformId);
+		if (!result) {
+			return ResponsesUtil.notFound(res, { error: 'DELETE_PLATFORM_FROM_COLLECTION_FAILED' });
+		}
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
+	} catch (error) {
+		return ResponsesUtil.somethingWentWrong(res, { id_case: 'DELETE_PLATFORM_FROM_COLLECTION_FAILED', error: error });
+	}
+});
 
+router.get('/:userId/platforms/manufacturer/owned', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 
+	try {
+		const userId = req.params.userId;
+		if (!userId) {
+			return ResponsesUtil.invalidParameters(res, { error: 'MISSING_PARAMETERS' });
+		}
+		const result : CollectionPlatformsManufacturerOwned[] = await CollectionService.getCollectionPlatformsManufacturerOwned(userId);
+		if (!result) {
+			return ResponsesUtil.notFound(res, { error: 'GET_COLLECTION_PLATFORMS_MANUFACTURER_OWNED_FAILED' });
+		}
+		return ResponsesUtil.handleResult(res, { info: 'execok', data: { result } });
+	} catch (error) {
+		return ResponsesUtil.somethingWentWrong(res, { id_case: 'GET_COLLECTION_PLATFORMS_MANUFACTURER_OWNED_FAILED', error: error });
+	}
+});
 
 
 
