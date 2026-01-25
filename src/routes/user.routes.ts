@@ -11,6 +11,7 @@ const router: Router = Router();
 
 router.post('/register', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	const { name, email, password }: UserRegisterRequest = req.body;
+	console.log("register", name, email, password);
 	if (!name || !email || !password) {
 		return ResponsesUtil.invalidParameters(res, { error: 'REGISTER_USER_MISSING_PARAMETERS' });
 	}

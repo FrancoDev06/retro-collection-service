@@ -7,6 +7,8 @@ export default class UserService {
 
 
 	static async registerUserToken(userId: string, token: string): Promise<string | undefined> {
+		console.log("registerUserToken", userId, token);
+		console.log("DatabaseUtil.pool", DatabaseUtil.pool);
 		const result = await DatabaseUtil.query(DatabaseUtil.pool, registerUserToken, [userId, token])
 			.then((res) => res.rows[0]?.tokenId)
 			.catch((err) => Promise.reject({ id: 'UserService.registerUserToken.registerUserToken', error: err }));
