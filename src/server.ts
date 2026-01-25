@@ -48,7 +48,7 @@ const init = async () => {
 			}
 		},
 		{
-			processes: [DatabaseUtil.init(app)],
+			processes: [DatabaseUtil.init()],
 			messages: {
 				start: "Initializing database(s) connection(s)...",
 				success: "Database(s) successfully configured.",
