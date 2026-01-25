@@ -29,7 +29,11 @@ export default class DatabaseUtil {
 	static async query(DatabasePool : Pool , query: string, values: (number|boolean|string|null)[], ...formatArgs: (number|boolean|string|null)[]) : Promise<PgQueryReturn<any>> {
         return new Promise<PgQueryReturn<any>>((resolve, reject) => {
             DatabasePool.query(format(query, ...formatArgs), values, (err: Error, res: PgQueryReturn<any>) => {
-				if (err) reject(err);
+				if (err) {
+					console.error("PG ERROR:", err);
+					reject(err);
+				  }
+				  
 				else resolve(res);
             })
         });
