@@ -5,26 +5,17 @@ services:
     container_name: retro-collection-db
     restart: unless-stopped
     environment:
-      # Variables d'environnement pour PostgreSQL
-      # Docker Compose lit automatiquement le fichier .env à la racine
-      # Syntaxe: ${VARIABLE:-valeur_par_defaut} lit VARIABLE depuis .env, sinon utilise la valeur par défaut
-      POSTGRES_USER: ${DATABASE_USER:-retro_user}          # Lit DATABASE_USER depuis .env, sinon "retro_user"
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-retro_password}  # Lit DATABASE_PASSWORD depuis .env, sinon "retro_password"
-      POSTGRES_DB: ${DATABASE_NAME:-retro_collection}     # Lit DATABASE_NAME depuis .env, sinon "retro_collection"
+
+      POSTGRES_USER: ${DATABASE_USER}  
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}  
+      POSTGRES_DB: ${DATABASE_NAME}     
     ports:
-      # Expose le port 5432 de PostgreSQL vers votre machine
-      # Format: "port_hôte:port_container"
       - "5432:5432"
     volumes:
-      # Persiste les données dans un volume Docker
-      # Si vous supprimez le container, les données restent
       - postgres_data:/var/lib/postgresql/data
-      # Optionnel: pour exécuter des scripts SQL au démarrage
-      # - ./databases/init:/docker-entrypoint-initdb.d
     networks:
       - retro-network
 
-  # Service API Node.js avec nodemon pour le hot-reload
   api:
     build:
       context: .
@@ -35,11 +26,11 @@ services:
       # Variables d'environnement pour l'API
       # Correspondance avec server.ts qui utilise process.env.DATABASE_*
       NODE_ENV: ${NODE_ENV:-dev}
-      DATABASE_HOST: ${DATABASE_HOST:-postgres}
-      DATABASE_PORT: ${DATABASE_PORT:-5432}
-      DATABASE_USER: ${DATABASE_USER:-retro_user}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-retro_password}
-      DATABASE_NAME: ${DATABASE_NAME:-retro_collection}
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
+      DATABASE_USER: ${DATABASE_USER}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_NAME: ${DATABASE_NAME}
       PORT: ${PORT:-9876}
       VERSION: ${VERSION:-1.0.0}
       NAME: ${NAME:-Retro Collection API}
@@ -47,7 +38,6 @@ services:
       SIDE: ${SIDE:-api}
       VERSION_SHORT: ${VERSION_SHORT:-1}
       JWT_SECRET: ${JWT_SECRET}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
     ports:
       # Expose le port de l'API vers votre machine
       - "${PORT:-9876}:9876"
