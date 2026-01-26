@@ -1,5 +1,4 @@
 import DatabaseUtil from "@utils/database";
-import { getGamesValueCount, getGamesCount, getPlatformsCount, getGamesCibCount } from "@utils/queries/dashboard.queries";
 
 export default class DashboardService {
 
@@ -13,10 +12,18 @@ export default class DashboardService {
 	 * @returns Le total des valeurs dans la collection d'un utilisateur
 	 */
     static async getGamesValue(userId: string): Promise<number> {
-		const result = await DatabaseUtil.query(DatabaseUtil.pool, getGamesValueCount, [userId])
-			.then((res) => res.rows[0].gamesValueCount)
-			.catch((err) => Promise.reject({ id: 'DashboardService.getGamesValue.getGamesValue', error: err }));
-		return result as number;
+		const { data, error } = await DatabaseUtil.supabase
+			.from('assoc_users_games_collections')
+			.select('nb_price_paid')
+			.eq('id_user', userId)
+			.eq('flag_active', true);
+
+		if (error) {
+			throw { id: 'DashboardService.getGamesValue.getGamesValue', error };
+		}
+
+		const gamesValueCount = data.reduce((sum: number, item: any) => sum + (item.nb_price_paid || 0), 0);
+		return gamesValueCount;
 	}
 
 	/**
@@ -29,10 +36,17 @@ export default class DashboardService {
 	 * @returns Le total des jeux dans la collection d'un utilisateur
 	 */
 	static async getGamesCount(userId: string): Promise<number> {
-		const result = await DatabaseUtil.query(DatabaseUtil.pool, getGamesCount, [userId])
-			.then((res) => res.rows[0].gamesCount)
-			.catch((err) => Promise.reject({ id: 'DashboardService.getGamesCount.getGamesCountCount', error: err }));
-		return result as number;
+		const { count, error } = await DatabaseUtil.supabase
+			.from('assoc_users_games_collections')
+			.select('*', { count: 'exact', head: true })
+			.eq('id_user', userId)
+			.eq('flag_active', true);
+
+		if (error) {
+			throw { id: 'DashboardService.getGamesCount.getGamesCountCount', error };
+		}
+
+		return count || 0;
 	}
 
 	/**
@@ -45,10 +59,17 @@ export default class DashboardService {
 	 * @returns Le total des plateformes dans la collection d'un utilisateur
 	 */
 	static async getPlatformsCount(userId: string): Promise<number> {
-		const result = await DatabaseUtil.query(DatabaseUtil.pool, getPlatformsCount, [userId])
-			.then((res) => res.rows[0].platformsCount)
-			.catch((err) => Promise.reject({ id: 'DashboardService.getPlatformsCount.getPlatformsCount', error: err }));
-		return result as number;
+		const { count, error } = await DatabaseUtil.supabase
+			.from('assoc_users_platforms_collections')
+			.select('*', { count: 'exact', head: true })
+			.eq('id_user', userId)
+			.eq('flag_active', true);
+
+		if (error) {
+			throw { id: 'DashboardService.getPlatformsCount.getPlatformsCount', error };
+		}
+
+		return count || 0;
 	}
 
 	/**
@@ -61,10 +82,20 @@ export default class DashboardService {
 	 * @returns Le total des jeux CIB dans la collection d'un utilisateur
 	 */
 	static async getGamesCibCount(userId: string): Promise<number> {
-		const result = await DatabaseUtil.query(DatabaseUtil.pool, getGamesCibCount, [userId])
-			.then((res) => res.rows[0].gamesCibCount)
-			.catch((err) => Promise.reject({ id: 'DashboardService.getGamesCibCount.getGamesCibCount', error: err }));
-		return result as number;
+		const { count, error } = await DatabaseUtil.supabase
+			.from('assoc_users_games_collections')
+			.select('*', { count: 'exact', head: true })
+			.eq('id_user', userId)
+			.eq('flag_active', true)
+			.eq('flag_has_cart', true)
+			.eq('flag_has_box', true)
+			.eq('flag_has_notice', true);
+
+		if (error) {
+			throw { id: 'DashboardService.getGamesCibCount.getGamesCibCount', error };
+		}
+
+		return count || 0;
 	}
 
 }

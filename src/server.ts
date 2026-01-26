@@ -4,27 +4,31 @@ if (process.env.NODE_ENV != 'dev') require('module-alias/register');
 import express from "express";
 import LogUtil from "./utils/log.util";
 import RoutesUtil from "./utils/routes.util";
-import DatabaseUtil from "@utils/database";
-
+import pkg from "../package.json";
 
 let app = express();
 
+type RetroConfig = { name: string; product: string; side: string; versionShort: number; versionCode: string; port: number; };
+export const getRetroConfig = (): RetroConfig => {
+	return (pkg as { retro: RetroConfig }).retro;
+}
+
+app.set("port", getRetroConfig().port);
+app.set("product", getRetroConfig().product);
+app.set("side", getRetroConfig().side);
+app.set("versionShort", getRetroConfig().versionShort);
+app.set("versionCode", getRetroConfig().versionCode);
+app.set("name", getRetroConfig().name);
 
 app.set("dbPort", process.env.DATABASE_PORT);
 app.set("dbHost", process.env.DATABASE_HOST);
 app.set("dbName", process.env.DATABASE_NAME);
 app.set("dbUser", process.env.DATABASE_USER);
 app.set("dbPsswd", process.env.DATABASE_PASSWORD);
-app.set("port", process.env.PORT);
-app.set("version", process.env.VERSION);
-app.set("name", process.env.NAME);
-app.set("product", process.env.PRODUCT);
-app.set("side", process.env.SIDE);
-app.set("versionShort", process.env.VERSION_SHORT);
-
+app.set("supabaseUrl", process.env.SUPABASE_URL);
+app.set("supabaseAnonKey", process.env.SUPABASE_ANON_KEY);
 
 app.set("jwtSecret", process.env.JWT_SECRET);
-console.log("DB URL exists:", !!process.env.DATABASE_URL);
 
 
 const init = async () => {
@@ -46,14 +50,6 @@ const init = async () => {
 				start: "Listening on service port...",
 				success: `API ready to receive requests on port ${app.get('port')}.`,
 				fail: "API cannot listen on the configured port!"
-			}
-		},
-		{
-			processes: [DatabaseUtil.init()],
-			messages: {
-				start: "Initializing database(s) connection(s)...",
-				success: "Database(s) successfully configured.",
-				fail: "Database(s) configuration failed!"
 			}
 		}
 	]

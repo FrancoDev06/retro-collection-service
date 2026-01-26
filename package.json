@@ -4,12 +4,14 @@
 	"version": "1.0.0",
 	"main": "dist/server.js",
 	"private": true,
-	"retro-collection": {
+	"retro": {
+		"name": "retro-collection-api",
 		"product": "retro",
+		"side": "api",
 		"versionShort": 1,
 		"versionCode": "0",
 		"port": 9876
-	  },
+	},
 	"scripts": {
 		"build": "tsc",
 		"build:version": "bash bump.sh",
@@ -17,7 +19,7 @@
 		"start:prod": "node dist/server.js"
 	},
 	"dependencies": {
-		"@supabase/supabase-js": "^2.91.1",
+		"@supabase/supabase-js": "^2.93.1",
 		"@types/crypto-js": "^4.2.2",
 		"@types/jsonwebtoken": "^9.0.10",
 		"@types/pg": "^8.15.6",

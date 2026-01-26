@@ -1,36 +1,39 @@
-import { Pool, PoolClient, QueryResult as PgQueryReturn } from "pg";
-import format from "pg-format";
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
+/**
+ * Classe utilitaire pour gérer la connexion Supabase
+ * Crée une instance unique du client Supabase réutilisable dans toute l'application
+ */
 export default class DatabaseUtil {
-  static pool: Pool;
+  private static _supabase: SupabaseClient | null = null;
 
-  static init(): void {
-    const connectionString = process.env.DATABASE_URL;
-    if (!connectionString) throw new Error("DATABASE_URL missing");
+  /**
+   * Obtient l'instance du client Supabase
+   * Crée la connexion si elle n'existe pas encore
+   * @returns {SupabaseClient} Instance du client Supabase
+   */
+  static get supabase(): SupabaseClient {
+    if (!this._supabase) {
+      const supabaseUrl = process.env.SUPABASE_URL;
+      const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
 
-    this.pool = new Pool({
-      connectionString,
-      ssl: { rejectUnauthorized: false },
-      max: 10,
-      connectionTimeoutMillis: 30000
-    });
+      if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error(
+          'Les variables d\'environnement SUPABASE_URL et SUPABASE_ANON_KEY doivent être définies'
+        );
+      }
 
-    this.pool.on('connect', (client: PoolClient) => {
-      client.query('SET search_path TO public').catch(err => console.error('search_path error:', err));
-    });
+      this._supabase = createClient(supabaseUrl, supabaseAnonKey);
+    }
 
-    // Test de connexion
-    this.pool.query("SELECT NOW()")
-      .then(res => console.log("✅ DB connected at", res.rows[0].now))
-      .catch(err => console.error("❌ DB connection failed:", err));
+    return this._supabase;
   }
 
-  static async query(
-    DatabasePool: Pool,
-    query: string,
-    values: (number | boolean | string | null)[],
-    ...formatArgs: (number | boolean | string | null)[]
-  ): Promise<PgQueryReturn<any>> {
-    return DatabasePool.query(format(query, ...formatArgs), values);
+  /**
+   * Réinitialise la connexion Supabase
+   * Utile pour les tests ou en cas de reconnexion nécessaire
+   */
+  static reset(): void {
+    this._supabase = null;
   }
 }
