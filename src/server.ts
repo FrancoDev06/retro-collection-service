@@ -10,7 +10,7 @@ import DatabaseUtil from "@utils/database";
 let app = express();
 
 
-app.set("dbPort", 5432);
+app.set("dbPort", process.env.DATABASE_PORT);
 app.set("dbHost", process.env.DATABASE_HOST);
 app.set("dbName", process.env.DATABASE_NAME);
 app.set("dbUser", process.env.DATABASE_USER);
@@ -21,6 +21,7 @@ app.set("name", process.env.NAME);
 app.set("product", process.env.PRODUCT);
 app.set("side", process.env.SIDE);
 app.set("versionShort", process.env.VERSION_SHORT);
+
 
 app.set("jwtSecret", process.env.JWT_SECRET);
 console.log("DB URL exists:", !!process.env.DATABASE_URL);

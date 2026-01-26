@@ -17,8 +17,11 @@ export default class UserService {
 	}
 
 	static async checkUserExists(email: string): Promise<any> {
+		console.log("checkUserExists", email);
 		const result = await DatabaseUtil.query(DatabaseUtil.pool, checkUserExists, [email])
-			.then((res) => res.rows[0].exists)
+			.then((res) => {
+				console.log("res", res);
+			})
 			.catch((err) => Promise.reject({ id: 'UserService.checkUserByEmail.checkUserByEmail', error: err }));
 
 		return result;
