@@ -197,7 +197,7 @@ export default class GameService {
 			.eq('id_platform', id)
 			.eq('flag_active', true)
 			.eq('ref_games.flag_active', true)
-			.order('ref_games.ll_title', { ascending: true })
+			.order('ref_games(ll_title)', { ascending: true })
 			.range(offset, offset + limit - 1);
 
 		if (error) {
@@ -401,7 +401,8 @@ export default class GameService {
 			.eq('id_platform', platformId)
 			.eq('flag_active', true)
 			.eq('ref_games.flag_active', true)
-			.order('ref_games.ll_title', { ascending: true });
+			.order('ref_games(ll_title)', { ascending: true });
+
 
 		if (error) {
 			throw { id: 'GameService.getGamesByPlatform.getGamesByPlatform', error };

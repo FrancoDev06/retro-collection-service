@@ -29,7 +29,6 @@ export default class UserService {
 	}
 
 	static async checkUserExists(email: string): Promise<boolean> {
-		console.log("checkUserExists", email);
 		const { data, error } = await DatabaseUtil.supabase
 			.from('ref_users')
 			.select('id_user')

@@ -57,8 +57,8 @@ export default class WishlistService {
             .eq('id_user', userId)
             .eq('id_platform', platformId)
             .eq('flag_active', true)
-            .order('ref_priorities.nb_order', { ascending: true })
-            .order('ref_games.ll_title', { ascending: true });
+            .order('ref_priorities(nb_order)', { ascending: true })
+            .order('ref_games(ll_title)', { ascending: true });
 
         if (error) {
             throw { id: 'WishlistService.getGamesFromWishlist.getGamesFromWishlist', error };
@@ -112,7 +112,8 @@ export default class WishlistService {
                 id_platform,
                 ref_platforms!inner (
                     id_platform,
-                    ll_name
+                    ll_name,
+                    flag_active
                 ),
                 nb_price_target
             `)
@@ -123,10 +124,11 @@ export default class WishlistService {
             throw { id: 'WishlistService.getWishlistPlatforms.getWishlistPlatforms', error };
         }
 
-        // Agrégation côté application
-        const grouped = data.reduce((acc: any, item: any) => {
-            const key = item.id_platform;
+        // Agrégation côté application (alignée sur getWishlistPlatforms query : rp.flag_active = TRUE)
+        const grouped = (data || []).reduce((acc: any, item: any) => {
             const platform = Array.isArray(item.ref_platforms) ? item.ref_platforms[0] : item.ref_platforms;
+            if (platform?.flag_active === false) return acc;
+            const key = item.id_platform;
             if (!acc[key]) {
                 acc[key] = {
                     platformId: item.id_platform,
@@ -251,8 +253,8 @@ export default class WishlistService {
 			`)
 			.eq('id_user', userId)
 			.eq('flag_active', true)
-			.order('ref_priorities.nb_order', { ascending: true })
-			.order('ref_games.ll_title', { ascending: true });
+			.order('ref_priorities(nb_order)', { ascending: true })
+			.order('ref_games(ll_title)', { ascending: true });
 
 		if (error) {
 			throw { id: 'WishlistService.getGamesList.getGamesList', error };
@@ -334,8 +336,7 @@ export default class WishlistService {
             `)
             .eq('id_user', userId)
             .eq('flag_active', true)
-            .order('ref_priorities.nb_order', { ascending: true })
-            .order('ref_platforms.ll_name', { ascending: true });
+            .order('ref_platforms(ll_name)', { ascending: true });
 
         if (error) {
             throw { id: 'WishlistService.getPlatformsFromWishlist.getPlatformsFromWishlist', error };

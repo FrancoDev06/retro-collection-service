@@ -44,7 +44,6 @@ router.post('/add/platform', async (req: Request, res: Response, next: NextFunct
 
 	try {
 		const addPlatformCollection: AddPlatformCollection = req.body;
-		console.log('addPlatformCollection:', addPlatformCollection);
 		const result = await CollectionService.addPlatformToCollection(
 			addPlatformCollection.userId,
 			addPlatformCollection.platformId,
@@ -133,7 +132,6 @@ router.post('/add/game',  async (req: Request, res: Response, next: NextFunction
 
 router.post('/:userId/game/delete', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
-		console.log('req.body:', req.body);
 		const userId = req.params.userId;
 		const idUserGameCollection = req.body.idUserGameCollection;
 		if (!idUserGameCollection || !userId) {
@@ -151,9 +149,7 @@ router.post('/:userId/game/delete', authMiddleware, async (req: Request, res: Re
 
 router.post('/:userId/platform/delete', authMiddleware, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
-		console.log('req.body:', req.body);
 		const userId = req.params.userId;
-		console.log('userId:', userId);
 		const platformId = req.body.platformId;
 		if (!platformId || !userId) {
 			return ResponsesUtil.invalidParameters(res, { error: 'MISSING_PARAMETERS' });

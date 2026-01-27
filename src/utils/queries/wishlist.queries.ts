@@ -77,7 +77,7 @@ SELECT
     rp.id_platform AS "platformId",
     rp.ll_name AS "platformName",
     augw.nb_price_target AS "priceTarget",
-    augw.ll_priority AS priority,
+    augw.id_priority AS priority,
     augw.ll_notes AS notes,
     augw.ts_added_at AS addedAt
 FROM

@@ -129,10 +129,37 @@ export default class CollectionService {
 						ll_label
 					)
 				),
-				nb_price_paid
+				ll_notes,
+				nb_price_paid,
+				ts_acquired_at,
+				flag_has_box,
+				flag_has_notice,
+				flag_has_cart,
+				id_cart_condition,
+				id_box_condition,
+				id_notice_condition,
+				ref_condition_states_cart:ref_condition_states!id_cart_condition (
+					ll_code,
+					ll_label,
+					ll_description,
+					nb_rating
+				),
+				ref_condition_states_box:ref_condition_states!id_box_condition (
+					ll_code,
+					ll_label,
+					ll_description,
+					nb_rating
+				),
+				ref_condition_states_notice:ref_condition_states!id_notice_condition (
+					ll_code,
+					ll_label,
+					ll_description,
+					nb_rating
+				)
 			`)
 			.eq('id_user', userId)
 			.eq('flag_active', true);
+
 
 		if (error) {
 			throw { id: 'CollectionService.getCollectionPlatformsGamesOwned.getCollectionPlatformsGamesOwned', error };
@@ -147,21 +174,33 @@ export default class CollectionService {
 					platformName: item.ref_platforms?.ll_name,
 					regionCode: item.ref_platforms?.ref_regions?.ll_code,
 					regionName: item.ref_platforms?.ref_regions?.ll_label,
-					gamesCount: 0,
-					totalValue: 0
+					notes: item.ll_notes,
+					pricePaid: item.nb_price_paid,
+					acquiredAt: item.ts_acquired_at,
+					hasBox: item.flag_has_box,
+					hasNotice: item.flag_has_notice,
+					hasCart: item.flag_has_cart,
+					cartConditionId: item.id_cart_condition,
+					cartConditionCode: item.ref_condition_states_cart?.ll_code,
+					cartConditionLabel: item.ref_condition_states_cart?.ll_label,
+					cartConditionDescription: item.ref_condition_states_cart?.ll_description,
+					cartConditionRating: item.ref_condition_states_cart?.nb_rating,
+					boxConditionId: item.id_box_condition,
+					boxConditionCode: item.ref_condition_states_box?.ll_code,
+					boxConditionLabel: item.ref_condition_states_box?.ll_label,
+					boxConditionDescription: item.ref_condition_states_box?.ll_description,
+					boxConditionRating: item.ref_condition_states_box?.nb_rating,
+					noticeConditionId: item.id_notice_condition,
+					noticeConditionCode: item.ref_condition_states_notice?.ll_code,
+					noticeConditionLabel: item.ref_condition_states_notice?.ll_label,
+					noticeConditionDescription: item.ref_condition_states_notice?.ll_description,
+					noticeConditionRating: item.ref_condition_states_notice?.nb_rating,
 				};
 			}
-			acc[key].gamesCount++;
-			acc[key].totalValue += item.nb_price_paid || 0;
 			return acc;
 		}, {});
 
-		return Object.values(grouped).sort((a: any, b: any) => {
-			if (a.platformName !== b.platformName) {
-				return a.platformName.localeCompare(b.platformName);
-			}
-			return a.regionCode.localeCompare(b.regionCode);
-		}) as CollectionPlatformsGamesOwned[];
+		return Object.values(grouped) as CollectionPlatformsGamesOwned[];
 	}
 
 	static async getCollectionGamesOwned(userId: string, platformId: string): Promise<CollectionGameOwned[]> {
@@ -214,7 +253,7 @@ export default class CollectionService {
 			.eq('id_user', userId)
 			.eq('id_platform', platformId)
 			.eq('flag_active', true)
-			.order('ref_games.ll_title', { ascending: true });
+			.order('ref_games(ll_title)', { ascending: true });
 
 		if (error) {
 			throw { id: 'CollectionService.getCollectionGamesOwned.getCollectionGamesOwned', error };
@@ -298,8 +337,6 @@ export default class CollectionService {
 	}
 
 	static async deleteGameFromCollection(userId: string, idUserGameCollection: string): Promise<{ id: string }> {
-		console.log('userId', userId);
-		console.log('idUserGameCollection', idUserGameCollection);
 		const { data, error } = await DatabaseUtil.supabase
 			.from('assoc_users_games_collections')
 			.update({ flag_active: false })
@@ -317,8 +354,6 @@ export default class CollectionService {
 	}
 
 	static async deletePlatformFromCollection(userId: string, platformId: string): Promise<{ id: string }> {
-		console.log('userId', userId);
-		console.log('platformId', platformId);
 		const { data, error } = await DatabaseUtil.supabase
 			.from('assoc_users_platforms_collections')
 			.update({ flag_active: false })

@@ -5,7 +5,7 @@ export default class DashboardService {
 	/**
 	 * FONCTION SERVICE : Récupère le total des valeurs dans la collection d'un utilisateur
 	 * 
-	 * @see getGamesValue (dashboard.queries.ts) - Requête SQL utilisée
+	 * @see getGamesValueCount (dashboard.queries.ts) - Requête SQL utilisée
 	 * @see GET /dashboard/:userId/games/value - Route API qui expose cette fonctionnalité
 	 * 
 	 * @param userId - ID de l'utilisateur

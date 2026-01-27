@@ -11,7 +11,7 @@ const router: Router = Router();
  * ROUTE API : Récupère le total des valeurs des jeux dans la collection d'un utilisateur
  * 
  * @see DashboardService.getGamesValue() - Fonction service appelée
- * @see getGamesValue (dashboard.queries.ts) - Requête SQL utilisée
+ * @see getGamesValueCount (dashboard.queries.ts) - Requête SQL utilisée
  * 
  * @route GET /dashboard/:userId/games/value
  * @access Private (nécessite authentification)
